@@ -1,3 +1,5 @@
+let dustInstance = 0;
+
 /** Sparse drag dust makes a small orbital curl, then drifts toward the black hole. */
 export function createQuoteDust(host, { reducedMotion = false } = {}) {
   const layer = document.createElement("div");
@@ -8,6 +10,9 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
   svg.classList.add("quote-dust-trails");
   svg.setAttribute("aria-hidden", "true");
   layer.append(svg);
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  svg.append(defs);
+  const gradientPrefix = `quote-dust-${++dustInstance}`;
   const particles = new Set();
   const trails = new Set();
   let reduced = reducedMotion,
@@ -16,7 +21,8 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     disposed = false,
     stroke = null,
     strokeId = 0,
-    emissionId = 0;
+    emissionId = 0,
+    trailId = 0;
   const attractor = { x: innerWidth * 0.66, y: innerHeight * 0.56 };
 
   function remove(particle) {
@@ -31,6 +37,7 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     trails.delete(trail);
     trail.animation.cancel();
     trail.path.remove();
+    trail.gradient.remove();
   }
   function clear() {
     for (const particle of particles) {
@@ -73,10 +80,33 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
         )
         .join(" "),
     );
-    path.setAttribute(
-      "stroke",
-      particle.element.style.getPropertyValue("--dust-core"),
+    const gradient = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "linearGradient",
     );
+    const gradientId = `${gradientPrefix}-${++trailId}`;
+    gradient.id = gradientId;
+    gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+    gradient.setAttribute("x1", String(points[0].x));
+    gradient.setAttribute("y1", String(points[0].y));
+    gradient.setAttribute("x2", String(points[points.length - 1].x));
+    gradient.setAttribute("y2", String(points[points.length - 1].y));
+    for (const [offset, color] of [
+      ["0%", "violet"],
+      ["36%", "blue"],
+      ["68%", "violet"],
+      ["100%", "glint"],
+    ]) {
+      const stop = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "stop",
+      );
+      stop.setAttribute("offset", offset);
+      stop.style.stopColor = `var(--trail-${color})`;
+      gradient.append(stop);
+    }
+    defs.append(gradient);
+    path.setAttribute("stroke", `url(#${gradientId})`);
     path.setAttribute("stroke-width", compact ? "0.5" : "0.6");
     path.style.strokeDasharray = `${tail}px ${length + tail}px`;
     svg.append(path);
@@ -91,7 +121,7 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
       })),
       { duration, easing: "linear", fill: "both" },
     );
-    const trail = { path, animation };
+    const trail = { path, animation, gradient };
     particle.trail = trail;
     trails.add(trail);
     const finish = () => {
@@ -261,6 +291,41 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
         return;
       attractor.x = point.x;
       attractor.y = point.y;
+    },
+    setLighting(time, proximity = 0) {
+      if (disposed || reduced || paused || hidden || !trails.size) return;
+      const phase = Math.sin(time * 0.2 + 0.8);
+      const gain = Math.max(0, Math.min(1, proximity));
+      const color = (r, g, b) =>
+        `rgb(${Math.round(r)} ${Math.round(g)} ${Math.round(b)})`;
+      layer.style.setProperty(
+        "--trail-violet",
+        color(
+          139 + phase * 5 + gain * 4,
+          117 + phase * 4 + gain * 3,
+          217 + phase * 5 + gain * 5,
+        ),
+      );
+      layer.style.setProperty(
+        "--trail-blue",
+        color(
+          151 + phase * 6 + gain * 5,
+          175 + phase * 6 + gain * 6,
+          235 + phase * 3 + gain * 3,
+        ),
+      );
+      layer.style.setProperty(
+        "--trail-glint",
+        color(
+          192 + phase * 4 + gain * 4,
+          205 + phase * 5 + gain * 4,
+          246 + phase * 3 + gain * 2,
+        ),
+      );
+      layer.style.setProperty(
+        "--trail-glow-alpha",
+        (0.3 + phase * 0.055 + gain * 0.035).toFixed(3),
+      );
     },
     setPaused(value) {
       paused = value;

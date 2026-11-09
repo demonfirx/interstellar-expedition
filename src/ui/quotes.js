@@ -364,6 +364,7 @@ export function createQuotePlayground(
       // Small text-only paint area. The same scene phase and approach envelope light the craft.
       if (time - lastLightTime >= 1 / 15) {
         const gain = approach?.envelope ?? 0;
+        dust.setLighting(time, gain);
         section.style.setProperty(
           "--quote-light-position",
           `${(50 + 44 * Math.sin(time * 0.2 + 0.8)).toFixed(2)}%`,

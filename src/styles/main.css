@@ -58,6 +58,10 @@
   filter: drop-shadow(0 1px 2px #01030e) drop-shadow(0 2px 8px #01030eb3);
 }
 .quote-dust {
+  --trail-violet: #8b75d9;
+  --trail-blue: #97afeb;
+  --trail-glint: #c0cdf6;
+  --trail-glow-alpha: 0.3;
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -84,6 +88,7 @@
   fill: none;
   stroke-linecap: round;
   pointer-events: none;
+  filter: drop-shadow(0 0 1.2px rgb(150 145 235 / var(--trail-glow-alpha)));
 }
 .quote-words:focus-visible {
   outline: 1px solid #b9c9f780;
