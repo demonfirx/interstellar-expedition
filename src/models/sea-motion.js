@@ -1,8 +1,11 @@
 export const SEA_LEVEL = -1.95;
-export function sampleSeaHeight(x, z, time) {
+export function sampleSeaHeight(x, z, time, sea = null) {
+  const phase = sea?.waveTime ?? time,
+    amplitude = sea?.waveAmplitude ?? 1;
   return (
-    0.04 * Math.sin(x * 0.9 + z * 0.32 - time * 0.5) +
-    0.022 * Math.sin(z * 0.8 - x * 0.21 + time * 0.4)
+    (0.04 * Math.sin(x * 0.9 + z * 0.32 - phase * 0.5) +
+      0.022 * Math.sin(z * 0.8 - x * 0.21 + phase * 0.4)) *
+    amplitude
   );
 }
 export function createVoyageRoute(baseX, aspect = 1.2) {
@@ -18,6 +21,7 @@ export function createVoyageRoute(baseX, aspect = 1.2) {
     goalZ = 15 - depth,
     dx = goalX - baseX;
   return {
+    aspect,
     startX: baseX,
     firstX: baseX + Math.min(3, Math.max(0.25, dx * 0.8)),
     firstZ: -0.025,
@@ -77,18 +81,34 @@ export function sampleSailingMotion(
   baseX,
   aspect = 1.2,
   route = createVoyageRoute(baseX, aspect),
+  sea = null,
 ) {
   const course = sampleVoyagePosition(time, route),
     { x, z } = course,
     forwardX = course.tangentX,
     forwardZ = course.tangentZ;
-  const fore = sampleSeaHeight(x + 0.65 * forwardX, z + 0.65 * forwardZ, time),
-    aft = sampleSeaHeight(x - 0.65 * forwardX, z - 0.65 * forwardZ, time);
-  const port = sampleSeaHeight(x - 0.3 * forwardZ, z + 0.3 * forwardX, time),
-    starboard = sampleSeaHeight(x + 0.3 * forwardZ, z - 0.3 * forwardX, time);
+  const fore = sampleSeaHeight(
+      x + 0.65 * forwardX,
+      z + 0.65 * forwardZ,
+      time,
+      sea,
+    ),
+    aft = sampleSeaHeight(x - 0.65 * forwardX, z - 0.65 * forwardZ, time, sea);
+  const port = sampleSeaHeight(
+      x - 0.3 * forwardZ,
+      z + 0.3 * forwardX,
+      time,
+      sea,
+    ),
+    starboard = sampleSeaHeight(
+      x + 0.3 * forwardZ,
+      z - 0.3 * forwardX,
+      time,
+      sea,
+    );
   return {
     x,
-    y: 0.16 + sampleSeaHeight(x, z, time),
+    y: 0.16 + sampleSeaHeight(x, z, time, sea),
     z,
     pitch: Math.atan2(fore - aft, 1.3),
     roll: -Math.atan2(port - starboard, 0.6),

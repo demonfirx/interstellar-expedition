@@ -7,21 +7,40 @@ import {
   Volume2,
   Maximize,
   Minimize,
+  ArrowRight,
+  Sparkles,
+  RotateCcw,
 } from "lucide";
 import { createCosmos } from "./scene/cosmos.js";
 import { createAmbientSound } from "./ui/ambient.js";
+import { createQuotePlayground } from "./ui/quotes.js";
 
-const icons = { Pause, Play, VolumeX, Volume2, Maximize, Minimize };
+const icons = {
+  Pause,
+  Play,
+  VolumeX,
+  Volume2,
+  Maximize,
+  Minimize,
+  ArrowRight,
+  Sparkles,
+  RotateCcw,
+};
 const refreshIcons = () => createIcons({ icons });
 const motion = document.querySelector("#motion"),
   sound = document.querySelector("#sound"),
   full = document.querySelector("#fullscreen");
 const media = matchMedia("(prefers-reduced-motion: reduce)");
+const quotes = createQuotePlayground(
+  document.querySelector(".quote-playground"),
+  { reducedMotion: media.matches },
+);
 let paused = media.matches,
   scene;
 try {
   scene = createCosmos(document.querySelector("#space"), {
     reducedMotion: paused,
+    initialTime:import.meta.env.DEV?Number(new URLSearchParams(location.search).get('sceneTime')||0):0,
   });
 } catch (error) {
   console.error("3D scene unavailable:", error);
@@ -35,6 +54,7 @@ function setIcon(button, name) {
 function setPaused(value) {
   paused = value;
   scene?.setPaused(value);
+  quotes.setPaused(value);
   motion.setAttribute("aria-pressed", String(value));
   motion.setAttribute(
     "aria-label",
@@ -44,7 +64,10 @@ function setPaused(value) {
 }
 setPaused(paused);
 motion.addEventListener("click", () => setPaused(!paused));
-media.addEventListener("change", (e) => setPaused(e.matches));
+media.addEventListener("change", (e) => {
+  quotes.setReducedMotion(e.matches);
+  setPaused(e.matches);
+});
 async function toggleSound() {
   try {
     const enabled = await ambient.toggle();
@@ -81,7 +104,8 @@ document.addEventListener("keydown", (e) => {
     e.ctrlKey ||
     e.metaKey ||
     e.altKey ||
-    /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)
+    /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) ||
+    e.target.closest(".quote-playground")
   )
     return;
   if (e.key.toLowerCase() === "m") toggleSound();
@@ -99,6 +123,7 @@ window.addEventListener("pagehide", (event) => {
   if (!event.persisted) {
     scene?.dispose();
     ambient.dispose();
+    quotes.dispose();
   }
 });
 refreshIcons();

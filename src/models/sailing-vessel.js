@@ -276,7 +276,7 @@ export function createSailingVessel() {
     bow: "+X",
     waterline: -0.2,
   };
-  function updateSails(time) {
+  function updateSails(time, strength = 1) {
     for (let n = 0; n < sails.length; n++) {
       const { mesh, rest } = sails[n],
         position = mesh.geometry.attributes.position,
@@ -288,6 +288,7 @@ export function createSailingVessel() {
           i,
           rest[i * 3 + 2] +
             0.022 *
+              strength *
               Math.sin(v * 6 + u * 2 - time * 0.95 + n) *
               Math.sin(Math.PI * u) *
               (1 - v),

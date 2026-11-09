@@ -1,8 +1,8 @@
 # Product
 
-Website artistik bertema gambar black hole Interstellar yang diberikan pengguna, dengan kapal layar 3D yang menjelajahi lautan kosmik. Scene memenuhi layar dan tidak menampilkan tulisan.
+Website artistik bertema gambar black hole Interstellar yang diberikan pengguna, dengan kapal layar 3D yang menjelajahi lautan kosmik. Scene memenuhi layar. Permintaan terbaru menambahkan quote Inggris yang membangun dan bisa dimainkan, sebagai pengecualian dari arahan sebelumnya tanpa tulisan.
 
-Permintaan terbaru: astronaut diganti kapal yang menjelajahi lautan di black hole. Kapal layar low poly, permukaan air kosmik, glow cincin yang lembut, dan pantulan kaca kabin menggantikan pantulan visor. Kamera pelan, parallax, dan tampilan tanpa tulisan tetap dipertahankan. Folder harus rapi. Source versi sebelumnya disimpan untuk kemungkinan penggunaan berikutnya.
+Kapal low poly berlayar ke black hole dengan kamera pelan dari belakang. Cincin membesar bertahap sesuai kedekatan kapal, sementara cahaya, pantulan kaca dan air, ombak, angin, serta wake ikut berubah halus. Quote original dapat diganti, kata-katanya diseret, disebar, dan dikembalikan. Selain quote, kontrol memakai ikon tanpa label visual. Folder rapi dan source versi sebelumnya disimpan.
 
 ## Platform dan stack
 

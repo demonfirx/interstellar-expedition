@@ -36,12 +36,12 @@ export function createShipWake(scene) {
     transparent: true,
     depthWrite: false,
     side: THREE.DoubleSide,
-    uniforms: { uTime: { value: 0 } },
+    uniforms: { uTime: { value: 0 }, uGain: { value: 1 } },
     vertexShader:
       "attribute float aFoam; varying vec2 vUv; varying float vFoam; void main(){vUv=uv;vFoam=aFoam;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
     fragmentShader: `
-    uniform float uTime;varying vec2 vUv;varying float vFoam;
-    void main(){float edge=smoothstep(0.,.32,vUv.x)*(1.-smoothstep(.68,1.,vUv.x));float fade=pow(1.-vUv.y,1.5);float ripple=.76+.24*sin(vUv.y*52.-uTime*.7);gl_FragColor=vec4(vec3(.42,.49,.62),edge*fade*ripple*vFoam*.32);
+    uniform float uTime;uniform float uGain;varying vec2 vUv;varying float vFoam;
+    void main(){float edge=smoothstep(0.,.32,vUv.x)*(1.-smoothstep(.68,1.,vUv.x));float fade=pow(1.-vUv.y,1.5);float ripple=.76+.24*sin(vUv.y*52.-uTime*.7);gl_FragColor=vec4(vec3(.42,.49,.62),edge*fade*ripple*vFoam*.32*uGain);
       #include <colorspace_fragment>
     }
   `,
@@ -54,8 +54,9 @@ export function createShipWake(scene) {
   const current = {},
     history = {};
   return {
-    update(time, route, scale) {
-      material.uniforms.uTime.value = time;
+    update(time, route, scale, approach) {
+      material.uniforms.uTime.value = approach.waveTime;
+      material.uniforms.uGain.value = approach.wakeGain;
       sampleVoyagePosition(time, route, current);
       let n = 0;
       for (let r = 0; r < ribbons; r++)
@@ -69,7 +70,7 @@ export function createShipWake(scene) {
           const normalX = -history.tangentZ,
             normalZ = history.tangentX;
           const spread =
-            (0.22 * scale + 0.24 * travelled) *
+            (0.22 * scale + 0.24 * travelled * (1 + 0.2 * approach.envelope)) *
             (r === 0 ? -1 : r === 1 ? 1 : 0);
           const width =
             (r === 2 ? 0.12 : 0.065) + Math.min(0.1, travelled * 0.02);
@@ -79,7 +80,8 @@ export function createShipWake(scene) {
             const x = sternX + normalX * (spread + side * width),
               z = sternZ + normalZ * (spread + side * width);
             positions[n++] = x;
-            positions[n++] = SEA_LEVEL + sampleSeaHeight(x, z, time) + 0.014;
+            positions[n++] =
+              SEA_LEVEL + sampleSeaHeight(x, z, time, approach) + 0.014;
             positions[n++] = z;
           }
         }

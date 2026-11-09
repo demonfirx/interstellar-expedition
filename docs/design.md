@@ -14,4 +14,8 @@ Kamera perspektif mengikuti kapal dari belakang agak menyamping. Anchor mengikut
 
 Bintang menempati tiga rentang kedalaman. Backdrop black hole memakai pergeseran UV yang kecil dan dibatasi, sehingga gerak mengikuti kapal tidak menarik tepi gambar sumber masuk layar. Kamera cermin air mengikuti pose kamera utama yang baru secara otomatis.
 
-Kontrol hanya berupa tiga ikon kecil: jeda, suara, layar penuh. Interaksi klik dan seret tetap berfungsi pada canvas. Mode layar penuh bergantung pada dukungan browser; scene sudah memenuhi panel sejak awal.
+Kontrol scene berupa tiga ikon kecil: jeda, suara, layar penuh. Interaksi klik dan seret tetap berfungsi pada canvas. Mode layar penuh bergantung pada dukungan browser; scene sudah memenuhi panel sejak awal.
+
+`sampleApproach` menghitung kedekatan dari jarak kapal ke tujuan, lalu memberi envelope yang sama untuk pembesaran cincin, gain cahaya, pantulan, angin, dan amplitudo gelombang. Clock ombak, angin, dan lapisan cincin diintegrasikan agar percepatan tidak mengubah fase secara mendadak. Lambung, wake, dan vertex laut memakai fungsi tinggi serta clock yang sama. Patch laut dan sumber cahaya mengikuti posisi kapal, sehingga permukaan dan pencahayaan tidak tertinggal di titik awal. Capture pantulan di-invalidasi ketika sumber environment selesai dimuat, termasuk saat jeda.
+
+Quote menjadi satu-satunya teks visual sesuai arahan terbaru. Enam kalimat original tidak diberi nama penulis lain. Kata berupa span dengan pointer capture dan batas drag; pegas critically damped dihitung secara analitik agar hasilnya konsisten pada berbagai frame rate. RAF berhenti saat kata diam, halaman tersembunyi, atau scene dijeda. Reduced motion meniadakan gerak pegas dan reveal. Screen reader mendapat kalimat utuh melalui live region; grup kata memiliki shortcut Enter/Spasi, Escape, dan Panah Kanan. Ikon next, scatter, reset dapat diakses keyboard dan memiliki target sentuh 44 px di ponsel.

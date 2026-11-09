@@ -19,6 +19,51 @@
         aria-label="Kamera mengikuti kapal layar dari belakang saat berlayar ke black hole di lautan kosmik. Seret untuk menggeser sudut kamera."
         tabindex="0"
       ></canvas>
+      <section
+        class="quote-playground"
+        aria-label="Interactive inspirational quotes"
+      >
+        <p
+          class="quote-readable sr-only"
+          aria-live="polite"
+          aria-atomic="true"
+          id="quote-readable"
+        ></p>
+        <p class="sr-only" id="quote-help">
+          Drag a word and release it. Press Enter to scatter the words, Escape
+          to reset, or Right Arrow for the next quote.
+        </p>
+        <div
+          class="quote-words"
+          role="group"
+          tabindex="0"
+          aria-label="Play with the quote"
+          aria-describedby="quote-readable quote-help"
+        ></div>
+        <div class="quote-controls">
+          <button
+            data-quote-action="next"
+            aria-label="Next quote"
+            title="Next quote"
+          >
+            <i data-lucide="arrow-right"></i>
+          </button>
+          <button
+            data-quote-action="scatter"
+            aria-label="Scatter words"
+            title="Play with the words"
+          >
+            <i data-lucide="sparkles"></i>
+          </button>
+          <button
+            data-quote-action="reset"
+            aria-label="Reset words"
+            title="Reset words"
+          >
+            <i data-lucide="rotate-ccw"></i>
+          </button>
+        </div>
+      </section>
       <div class="scene-controls" aria-label="Kontrol pemandangan">
         <button id="motion" aria-label="Jeda animasi" aria-pressed="false">
           <i data-lucide="pause"></i>

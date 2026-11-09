@@ -10,8 +10,9 @@ import { createFollowCameraRig } from "./follow-camera.js";
 import { createAccretionLighting } from "./accretion-lighting.js";
 import { createCosmicOcean } from "./cosmic-ocean.js";
 import { createShipWake } from "./ship-wake.js";
+import { sampleApproach } from "../models/approach.js";
 
-export function createCosmos(canvas, { reducedMotion = false } = {}) {
+export function createCosmos(canvas, { reducedMotion = false,initialTime=0 } = {}) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
@@ -64,6 +65,9 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       uResolution: { value: new THREE.Vector2(1, 1) },
       uCameraOffset: { value: new THREE.Vector2() },
       uCameraScale: { value: 1 },
+      uApproachZoom: { value: 1 },
+      uProximity: { value: 0 },
+      uGlowGain: { value: 1 },
     },
   });
   const background = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
@@ -139,7 +143,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
   let width = 1,
     height = 1,
     mobile = false,
-    time = 0,
+    time = Number.isFinite(initialTime)?Math.max(0,Math.min(900,initialTime)):0,
     last = performance.now(),
     paused = reducedMotion,
     active = !document.hidden,
@@ -152,6 +156,8 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     route;
   const pointer = new THREE.Vector2();
   const smoothPointer = new THREE.Vector2();
+  const approachState = {},
+    approachPoint = {};
   function resize() {
     width = canvas.clientWidth;
     height = canvas.clientHeight;
@@ -180,9 +186,14 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     if (active && visible) {
       if (!paused) {
         time += dt;
-        vessel.updateSails(time);
         smoothPointer.lerp(pointer, 1 - Math.exp(-dt * 2.2));
       }
+      sampleApproach(time, route, approachState, approachPoint);
+      if (!paused)
+        vessel.updateSails(
+          approachState.windTime,
+          1 + 0.15 * approachState.envelope,
+        );
       if (!paused)
         rotation = THREE.MathUtils.damp(rotation, targetRotation, 5, dt);
       const cameraMotion = cameraRig.update(
@@ -209,7 +220,13 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
         cameraMotion.background.y,
       );
       material.uniforms.uCameraScale.value = cameraMotion.background.scale;
-      const sailing = sampleSailingMotion(time, baseX, camera.aspect, route);
+      const sailing = sampleSailingMotion(
+        time,
+        baseX,
+        camera.aspect,
+        route,
+        approachState,
+      );
       vessel.root.position.set(sailing.x, SEA_LEVEL + sailing.y, sailing.z);
       vessel.root.rotation.set(sailing.roll, sailing.yaw, sailing.pitch);
       ocean.update(
@@ -218,10 +235,15 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
         sailing.z,
         vessel.root.rotation.y,
         renderer,
+        approachState,
+        cameraMotion.background,
       );
-      wake.update(time, route, vessel.root.scale.x);
-      material.uniforms.uTime.value = time;
-      accretionLighting.update(time, camera.aspect);
+      wake.update(time, route, vessel.root.scale.x, approachState);
+      material.uniforms.uTime.value = approachState.flowTime;
+      material.uniforms.uApproachZoom.value = approachState.zoom;
+      material.uniforms.uProximity.value = approachState.envelope;
+      material.uniforms.uGlowGain.value = approachState.glowGain;
+      accretionLighting.update(time, camera.aspect, approachState);
       farStars.rotation.z = time * 0.00035;
       middleStars.rotation.z = time * 0.0007;
       nearStars.rotation.z = time * 0.001;

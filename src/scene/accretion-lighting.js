@@ -19,6 +19,7 @@ const reflectionFragment = `
   uniform float uReady;
   uniform float uTime;
   uniform float uGain;
+  uniform float uApproachZoom;
   varying vec2 vUv;
   varying vec3 vWorldPosition;
   varying vec3 vTangent;
@@ -30,6 +31,7 @@ const reflectionFragment = `
     vec2 angle=vec2(dot(view,vTangent),dot(view,vBitangent));
     vec2 uv=vec2(.626,.47)+(pixelUv-.5)*vec2(.77,.78)+angle*vec2(.10,.065);
     uv+=vec2(sin(uTime*.35+pixelUv.y*5.)*.006,sin(uTime*.26+pixelUv.x*7.)*.004);
+    uv=vec2(.626,.442)+(uv-vec2(.626,.442))/uApproachZoom;
     vec3 reflection=texture2D(uSource,clamp(uv,.001,.999)).rgb;
     float light=dot(reflection,vec3(.2126,.7152,.0722));
     float edge=1.-smoothstep(.44,.5,max(abs(vUv.x-.5),abs(vUv.y-.5)));
@@ -48,9 +50,14 @@ export function createAccretionLighting({ scene, renderer, vessel }) {
     (surface) => surface.isMeshStandardMaterial,
   );
   const baseStrength = surfaces.map((surface) => surface.envMapIntensity);
+  const coolBase = new THREE.Color("#a8baff"),
+    coolNear = new THREE.Color("#c2c7ff");
+  const warmBase = new THREE.Color("#e9b4ca"),
+    warmNear = new THREE.Color("#efb7b0");
   const rim = new THREE.DirectionalLight("#aebeff", 3.9);
   rim.position.set(5, 2, -5);
   scene.add(rim);
+  scene.add(rim.target);
   const cool = new THREE.PointLight("#a8baff", 16, 24, 2);
   const warm = new THREE.PointLight("#e9b4ca", 9, 20, 2);
   scene.add(cool, warm);
@@ -66,6 +73,7 @@ export function createAccretionLighting({ scene, renderer, vessel }) {
       uReady: { value: 0 },
       uTime: { value: 0 },
       uGain: { value: 0.62 },
+      uApproachZoom: { value: 1 },
     },
   });
   for (const window of vessel.reflectors) {
@@ -96,32 +104,52 @@ export function createAccretionLighting({ scene, renderer, vessel }) {
         generator.dispose();
       }
     },
-    update(time, aspect) {
+    update(time, aspect, approach) {
       const pulse =
         1 + 0.045 * Math.sin(time * 0.35) + 0.025 * Math.sin(time * 0.19 + 1.1);
-      const sourceX = THREE.MathUtils.lerp(
-        0.4,
-        2.1,
-        THREE.MathUtils.smoothstep(aspect, 0.6, 1.3),
+      const position = vessel.root.position,
+        forwardX = Math.cos(vessel.root.rotation.y),
+        forwardZ = -Math.sin(vessel.root.rotation.y),
+        sideX = -forwardZ,
+        sideZ = forwardX;
+      rim.position.set(
+        position.x + forwardX * 6 + sideX * 2,
+        position.y + 3.3,
+        position.z + forwardZ * 6 + sideZ * 2,
       );
-      rim.position.set(sourceX + 2, 2.5, -5);
-      rim.intensity = 3.9 * pulse;
-      cool.position.set(sourceX + 1, 1.8, 2.5);
-      cool.intensity = 16 * pulse;
-      warm.position.set(sourceX + 0.3, -0.15, 3);
-      warm.intensity = 9 * (1 + 0.045 * Math.sin(time * 0.26 + 0.7));
+      rim.target.position.set(position.x, position.y + 0.6, position.z);
+      rim.intensity = 3.9 * pulse * approach.lightGain;
+      cool.position.set(
+        position.x + forwardX * 4 + sideX * 2,
+        position.y + 2.5,
+        position.z + forwardZ * 4 + sideZ * 2,
+      );
+      cool.color.copy(coolBase).lerp(coolNear, approach.envelope * 0.5);
+      cool.intensity = 16 * pulse * approach.lightGain;
+      warm.position.set(
+        position.x + forwardX * 3 - sideX * 0.5,
+        position.y + 1,
+        position.z + forwardZ * 3 - sideZ * 0.5,
+      );
+      warm.color.copy(warmBase).lerp(warmNear, approach.envelope * 0.45);
+      warm.intensity =
+        9 *
+        (1 + 0.045 * Math.sin(time * 0.26 + 0.7)) *
+        (1 + 0.25 * approach.envelope);
       scene.environmentIntensity = 0.9 + 0.035 * Math.sin(time * 0.23);
       scene.environmentRotation.set(
         0.015 * Math.sin(time * 0.15),
-        -0.8 + 0.025 * Math.sin(time * 0.13),
+        -0.8 + vessel.root.rotation.y + 0.025 * Math.sin(time * 0.13),
         0,
       );
-      material.uniforms.uTime.value = time;
+      material.uniforms.uTime.value = approach.flowTime;
+      material.uniforms.uApproachZoom.value = approach.zoom;
       for (let i = 0; i < surfaces.length; i++) {
-        surfaces[i].envMapIntensity = baseStrength[i] * pulse;
+        surfaces[i].envMapIntensity =
+          baseStrength[i] * pulse * (1 + 0.22 * approach.envelope);
         surfaces[i].envMapRotation.copy(scene.environmentRotation);
       }
-      material.uniforms.uGain.value = 0.62 * pulse;
+      material.uniforms.uGain.value = 0.62 * pulse * approach.glowGain;
     },
     dispose() {
       if (environment) {

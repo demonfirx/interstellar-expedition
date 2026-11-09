@@ -12,6 +12,9 @@ export const blackHoleFragment = `
   uniform vec2 uResolution;
   uniform vec2 uCameraOffset;
   uniform float uCameraScale;
+  uniform float uApproachZoom;
+  uniform float uProximity;
+  uniform float uGlowGain;
   varying vec2 vUv;
   const float IMAGE_ASPECT=1.77777778;
   mat2 turn(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
@@ -36,6 +39,7 @@ export const blackHoleFragment = `
     vec2 uv=(vUv-.5)*fit*.975*uCameraScale+vec2(mix(.5,.615,1.-smoothstep(.75,1.4,aspect)),.5);
     uv+=uCameraOffset*fit;
     vec2 center=vec2(.626,.442);
+    uv=center+(uv-center)/uApproachZoom;
     vec2 p=(uv-center)*vec2(IMAGE_ASPECT,1.);
     float r=length(p),a=atan(p.y,p.x);
     float diskLine=.672-uv.x*.285;
@@ -74,7 +78,8 @@ export const blackHoleFragment = `
     vec3 halo=(texture2D(uImage,clamp(uv+vec2(.005,0.),.001,.999)).rgb+texture2D(uImage,clamp(uv-vec2(.005,0.),.001,.999)).rgb+texture2D(uImage,clamp(uv+vec2(0.,.008),.001,.999)).rgb+texture2D(uImage,clamp(uv-vec2(0.,.008),.001,.999)).rgb)*.25;
     float luminance=dot(col,vec3(.2126,.7152,.0722));
     float headroom=1.-smoothstep(.2,.8,luminance);
-    col+=max(halo-.12,0.)*.085*headroom*clearCenter;
+    col+=max(halo-.12,0.)*.085*uGlowGain*headroom*clearCenter;
+    col+=col*vec3(.05,.035,.08)*uProximity*headroom*clearCenter;
     float vignette=1.-smoothstep(.35,.9,length((vUv-.5)*vec2(.9,1.)))*.19;
     col*=vignette;
     gl_FragColor=vec4(col,1.);

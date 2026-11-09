@@ -45,6 +45,9 @@ export function createVesselReflection(scene, vessel, oceanMesh, uniforms) {
     }
   };
   return {
+    invalidate() {
+      lastTime = -Infinity;
+    },
     dispose() {
       oceanMesh.onBeforeRender = () => {};
       reflector.dispose();
