@@ -6,6 +6,7 @@ Satu scene penuh tanpa teks terlihat, mengikuti permintaan terbaru pengguna. Gam
 - Astronaut: suit abu-abu kebiruan, visor pixel biru-ungu, aksen lavender, rim light dari arah black hole.
 - Empat lapisan radial dari gambar sumber bergerak independen. Cakram tengah memiliki aliran lateral; pusat gelap dipertahankan.
 - Desktop: astronaut di sisi kiri. Mobile: astronaut lebih rendah, tetap ada ruang untuk cincin black hole.
+- Kedalaman: kamera perspektif dengan gerak pelan, parallax mouse yang diredam, dan tiga lapisan partikel. Latar mengikuti kamera lebih sedikit daripada astronaut dan debu depan.
 - Tidak ada heading, navbar, caption, footer, kartu, toast, atau label visual. Ikon kecil tanpa tulisan hanya untuk kontrol scene.
 - Aria labels, fokus keyboard, pause, reduced motion, fallback gambar, dan audio opt-in tersedia.
 

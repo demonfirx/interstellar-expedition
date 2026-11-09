@@ -10,7 +10,8 @@ export const blackHoleFragment = `
   uniform float uReady;
   uniform float uTime;
   uniform vec2 uResolution;
-  uniform vec2 uPointer;
+  uniform vec2 uCameraOffset;
+  uniform float uCameraScale;
   varying vec2 vUv;
   const float IMAGE_ASPECT=1.77777778;
   mat2 turn(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
@@ -31,8 +32,9 @@ export const blackHoleFragment = `
     if(uReady<.5){gl_FragColor=vec4(0.);return;}
     float aspect=uResolution.x/uResolution.y;
     vec2 fit=vec2(min(1.,aspect/IMAGE_ASPECT),min(1.,IMAGE_ASPECT/aspect));
-    vec2 uv=(vUv-.5)*fit+vec2(mix(.5,.615,1.-smoothstep(.75,1.4,aspect)),.5);
-    uv+=uPointer*vec2(.0035,.002);
+    // Overscan keeps texture borders outside the view during slow camera travel.
+    vec2 uv=(vUv-.5)*fit*.975*uCameraScale+vec2(mix(.5,.615,1.-smoothstep(.75,1.4,aspect)),.5);
+    uv+=uCameraOffset*fit;
     vec2 center=vec2(.626,.442);
     vec2 p=(uv-center)*vec2(IMAGE_ASPECT,1.);
     float r=length(p),a=atan(p.y,p.x);

@@ -25,6 +25,7 @@ src/
   models/astronaut.js            Model voxel, skeleton, klip animasi
   models/motion.js               Kurva melayang dan dadah dengan jeda alami
   scene/cosmos.js                Scene, pencahayaan, partikel, kamera
+  scene/camera-motion.js         Lintasan kamera dan kedalaman parallax
   scene/shaders/black-hole.js    Animasi lapisan gambar referensi
   styles/main.css               Canvas penuh dan kontrol minimal
   ui/ambient.js                 Sintesis suara ambient
@@ -45,6 +46,7 @@ docs/
 
 - Klik atau ketuk canvas: astronaut dadah.
 - Seret: putar astronaut.
+- Gerakkan mouse: parallax lembut dengan respons yang diredam. Kamera juga bergerak pelan saat tidak ada input; bintang jauh, lapisan tengah, dan debu depan menempati kedalaman berbeda.
 - **W**: dadah; **M**: suara; **R**: reset rotasi; **Spasi**: jeda/lanjutkan.
 - Ikon kecil kanan bawah: jeda, suara, dan layar penuh. Kontrol muncul saat pointer masuk atau menerima fokus keyboard.
 - Preferensi reduced motion dihormati. Suara hanya mulai setelah interaksi.
