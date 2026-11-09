@@ -6,7 +6,7 @@ import { greetingPose } from "./motion.js";
 export function createAstronaut() {
   const bones = {},
     list = [],
-    pieces = [];
+    pieces = [[], []];
   function bone(name, parent, x, y, z) {
     const b = new THREE.Bone();
     b.name = name;
@@ -32,7 +32,7 @@ export function createAstronaut() {
     bone(`${s}_foot`, `${s}_leg_lower`, 0, -0.58, 0);
   }
   // Root-space boxes retain perfectly crisp voxel edges through the animation.
-  function block(name, x, y, z, w, h, d, color) {
+  function block(name, x, y, z, w, h, d, color, surface = 0) {
     const g = new THREE.BoxGeometry(w, h, d).toNonIndexed();
     g.translate(x, y, z);
     const n = g.attributes.position.count,
@@ -48,7 +48,14 @@ export function createAstronaut() {
     g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(ids, 4));
     g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(weights, 4));
-    pieces.push(g);
+    if (surface === 1) {
+      // Faceted curved shading normals make the pixel glass catch its environment.
+      const normal = g.attributes.normal;
+      const n = new THREE.Vector3(x * 0.65, (y - 1.63) * 0.5, 1).normalize();
+      for (let i = 0; i < normal.count; i++)
+        if (normal.getZ(i) > 0.9) normal.setXYZ(i, n.x, n.y, n.z);
+    }
+    pieces[surface].push(g);
   }
   const white = "#bbc8df",
     light = "#dce3f3",
@@ -105,6 +112,7 @@ export function createAstronaut() {
         0.202,
         0.04,
         visor[y][x],
+        1,
       );
   block("head", -0.34, 1.99, 0.9, 0.33, 0.09, 0.02, "#e5edff");
   block("head", -0.47, 1.83, 0.9, 0.09, 0.23, 0.02, "#c9daff");
@@ -146,15 +154,28 @@ export function createAstronaut() {
     block(`${s}_foot`, lx, -2.2, 0.17, 0.62, 0.12, 0.92, dark);
     block(`${s}_foot`, lx, -2.03, 0.58, 0.43, 0.17, 0.09, shadow);
   }
-  const geometry = mergeGeometries(pieces);
-  pieces.forEach((g) => g.dispose());
-  const material = new THREE.MeshStandardMaterial({
+  const surfaces = pieces.map((parts) => mergeGeometries(parts));
+  const geometry = mergeGeometries(surfaces, true);
+  pieces.flat().forEach((g) => g.dispose());
+  surfaces.forEach((g) => g.dispose());
+  const suit = new THREE.MeshStandardMaterial({
+    name: "Astro_Suit",
     vertexColors: true,
-    roughness: 0.63,
-    metalness: 0.12,
+    roughness: 0.69,
+    metalness: 0.14,
+    envMapIntensity: 0.5,
     flatShading: true,
   });
-  const mesh = new THREE.SkinnedMesh(geometry, material);
+  const visorMaterial = new THREE.MeshPhysicalMaterial({
+    name: "Astro_Visor",
+    vertexColors: true,
+    roughness: 0.25,
+    metalness: 0.42,
+    clearcoat: 0.85,
+    clearcoatRoughness: 0.15,
+    envMapIntensity: 1.7,
+  });
+  const mesh = new THREE.SkinnedMesh(geometry, [suit, visorMaterial]);
   mesh.name = "ASTRO_01";
   mesh.add(bones.root);
   mesh.bind(new THREE.Skeleton(list));

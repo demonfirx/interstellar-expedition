@@ -26,6 +26,7 @@ src/
   models/motion.js               Kurva melayang dan dadah dengan jeda alami
   scene/cosmos.js                Scene, pencahayaan, partikel, kamera
   scene/camera-motion.js         Lintasan kamera dan kedalaman parallax
+  scene/accretion-lighting.js    Pantulan lingkungan dan cahaya black hole
   scene/shaders/black-hole.js    Animasi lapisan gambar referensi
   styles/main.css               Canvas penuh dan kontrol minimal
   ui/ambient.js                 Sintesis suara ambient

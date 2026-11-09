@@ -3,6 +3,7 @@ import { createAstronaut, createAnimationClips } from "../models/astronaut.js";
 import { blackHoleFragment, blackHoleVertex } from "./shaders/black-hole.js";
 import { sampleFloat } from "../models/motion.js";
 import { sampleCameraMotion } from "./camera-motion.js";
+import { createAccretionLighting } from "./accretion-lighting.js";
 
 export function createCosmos(canvas, { reducedMotion = false } = {}) {
   const renderer = new THREE.WebGLRenderer({
@@ -24,13 +25,10 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       100,
     );
   camera.position.z = 15;
-  scene.add(new THREE.HemisphereLight("#889dcf", "#100e2a", 1.1));
-  const key = new THREE.DirectionalLight("#bac9eb", 1.65);
+  scene.add(new THREE.HemisphereLight("#889dcf", "#100e2a", 0.8));
+  const key = new THREE.DirectionalLight("#bac9eb", 1.2);
   key.position.set(-4, 5, 8);
   scene.add(key);
-  const rim = new THREE.DirectionalLight("#b5bfff", 4.8);
-  rim.position.set(7, 2, -5);
-  scene.add(rim);
   const low = new THREE.DirectionalLight("#6369ac", 0.7);
   low.position.set(-4, -3, 3);
   scene.add(low);
@@ -40,6 +38,12 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
   astronaut.name = "Astro_Float_Root";
   astronaut.add(mesh);
   scene.add(astronaut);
+  const accretionLighting = createAccretionLighting({
+    scene,
+    renderer,
+    bones,
+    mesh,
+  });
   const clips = createAnimationClips(),
     mixer = new THREE.AnimationMixer(mesh);
   mixer.clipAction(clips[0]).play();
@@ -86,6 +90,11 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       loaded.colorSpace = THREE.SRGBColorSpace;
       material.uniforms.uImage.value = loaded;
       material.uniforms.uReady.value = 1;
+      try {
+        accretionLighting.setSource(loaded);
+      } catch (error) {
+        console.warn("Environment prefilter unavailable:", error);
+      }
     },
     undefined,
     () => {
@@ -233,6 +242,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
         drift.rotation.z - counterbalance,
       );
       material.uniforms.uTime.value = time;
+      accretionLighting.update(time, camera.aspect);
       farStars.rotation.z = time * 0.00035;
       middleStars.rotation.z = time * 0.0007;
       nearStars.rotation.z = time * 0.001;
@@ -325,6 +335,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
             m.dispose();
       });
       texture.dispose();
+      accretionLighting.dispose();
       renderer.dispose();
     },
   };

@@ -25,6 +25,28 @@ test("voxel astronaut has a valid rigid-weighted skeleton and readable limbs", (
   assert.ok(mesh.geometry.getAttribute("position").count > 1000);
 });
 
+test("suit and visor have separate complete render groups with valid shading normals", () => {
+  const { mesh } = createAstronaut();
+  const geometry = mesh.geometry;
+  assert.equal(geometry.groups.length, 2);
+  assert.ok(Array.isArray(mesh.material));
+  let next = 0;
+  for (const group of geometry.groups) {
+    assert.equal(group.start, next);
+    assert.ok(group.count > 0);
+    assert.ok(mesh.material[group.materialIndex]);
+    next += group.count;
+  }
+  assert.equal(next, geometry.attributes.position.count);
+  const normals = geometry.attributes.normal;
+  for (let i = 0; i < normals.count; i++)
+    assert.ok(
+      Math.abs(
+        Math.hypot(normals.getX(i), normals.getY(i), normals.getZ(i)) - 1,
+      ) < 1e-5,
+    );
+});
+
 test("downloadable GLB preserves its skeleton and both animation clips", async () => {
   const file = await readFile(
     new URL("../public/models/astro-rigged.glb", import.meta.url),
