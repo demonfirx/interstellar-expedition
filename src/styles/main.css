@@ -45,6 +45,7 @@
   );
 }
 .quote-words {
+  user-select: none;
   min-height: 2.8em;
   font-size: clamp(23px, 2.7vw, 36px);
   font-weight: 400;
@@ -55,6 +56,22 @@
 }
 .quote-drift {
   filter: drop-shadow(0 1px 2px #01030e) drop-shadow(0 2px 8px #01030eb3);
+}
+.quote-dust {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+.quote-spark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  background: var(--dust-core, #d1dbff);
+  box-shadow: 0 0 5px 1px var(--dust-halo, #929deb52);
+  pointer-events: none;
 }
 .quote-words:focus-visible {
   outline: 1px solid #b9c9f780;
@@ -250,6 +267,9 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .quote-dust {
+    display: none;
+  }
   .quote-drift {
     transform: none !important;
   }

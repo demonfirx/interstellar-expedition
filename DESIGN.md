@@ -12,5 +12,6 @@ Satu scene penuh dengan quote Inggris original sebagai satu-satunya teks terliha
 - Kedalaman: kamera perspektif mengikuti dari belakang dengan pergantian sudut perlahan, parallax mouse yang diredam, air 3D, dan tiga lapisan partikel.
 - Quote: Manrope, kiri atas, tanpa kartu. Grup kata melayang dengan amplitudo 3 px horizontal, 6 px vertikal, dan rotasi maksimum 0,25 derajat. Pantulan gradasi biru-ungu dan putih hangat bergerak pelan, dengan glow kecil yang meningkat sesuai kedekatan kapal. Kata dapat diseret lalu kembali dengan pegas teredam. Pergantian otomatis 16 detik memakai fade keluar 350 ms dan masuk 700 ms. Ikon untuk next, scatter, reset, dan jeda auto. Tidak ada heading, navbar, footer, toast, atau label kontrol visual.
 - Aria labels, fokus keyboard, pause, reduced motion, fallback gambar, dan audio opt-in tersedia.
+- Debu quote: titik kecil 1,2–2,4 px dengan glow redup, dominan biru-ungu dan sedikit hangat. Muncul jarang selama drag, bergerak sedikit ke atas, lalu memudar 2,1–2,8 detik. Tidak ada ledakan partikel, dan tidak muncul saat kata diam.
 
 Versi landing sebelumnya disimpan di `docs/archive/` dan tidak masuk build.

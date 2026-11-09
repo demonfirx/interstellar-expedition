@@ -1,5 +1,6 @@
 import { stepWordSpring } from "./quote-physics.js";
 import { createQuoteCycle } from "./quote-cycle.js";
+import { createQuoteDust } from "./quote-dust.js";
 
 export const QUOTES = [
   "Small steps still carry you beyond the familiar.",
@@ -23,6 +24,7 @@ export function createQuotePlayground(
     resetButton = section.querySelector('[data-quote-action="reset"]'),
     autoButton = section.querySelector('[data-quote-action="auto"]');
   const cycle = createQuoteCycle();
+  const dust = createQuoteDust(section.parentElement, { reducedMotion });
   let words = [],
     index = 0,
     paused = reducedMotion,
@@ -88,6 +90,7 @@ export function createQuotePlayground(
   }
   function release() {
     if (!drag) return;
+    dust.end();
     cycle.restart();
     const pointer = drag.pointer;
     drag.word.element.classList.remove("is-dragging");
@@ -98,6 +101,7 @@ export function createQuotePlayground(
     else schedule();
   }
   function reset() {
+    dust.end();
     if (drag) {
       const pointer = drag.pointer;
       drag.word.element.classList.remove("is-dragging");
@@ -214,7 +218,10 @@ export function createQuotePlayground(
       top: rect.top - word.y,
       width: rect.width,
       height: rect.height,
+      grabX: event.clientX - rect.left,
+      grabY: event.clientY - rect.top,
     };
+    dust.begin(event.clientX, event.clientY);
     word.element.classList.add("is-dragging");
     wordsElement.setPointerCapture(event.pointerId);
     event.preventDefault();
@@ -245,6 +252,13 @@ export function createQuotePlayground(
     drag.lastY = event.clientY;
     drag.lastTime = now;
     paint(word);
+    dust.trail(
+      drag.left + word.x + drag.grabX,
+      drag.top + word.y + drag.grabY,
+      word.vx,
+      word.vy,
+      now,
+    );
   }
   function keydown(event) {
     if (event.key === "Enter" || event.code === "Space") {
@@ -307,6 +321,7 @@ export function createQuotePlayground(
     cycle.restart();
   }
   function visibility() {
+    dust.setHidden(document.hidden);
     if (document.hidden) {
       cancelAnimationFrame(frame);
       frame = 0;
@@ -382,6 +397,7 @@ export function createQuotePlayground(
     },
     setPaused(value) {
       paused = value;
+      dust.setPaused(value);
       previousWallTime = null;
       if (value) {
         cancelAnimationFrame(frame);
@@ -395,6 +411,7 @@ export function createQuotePlayground(
     },
     setReducedMotion(value) {
       reduced = value;
+      dust.setReducedMotion(value);
       if (value) {
         cancelTransition();
         reset();
@@ -404,6 +421,7 @@ export function createQuotePlayground(
     },
     dispose() {
       disposed = true;
+      dust.dispose();
       cancelTransition();
       cancelAnimationFrame(frame);
       wordsElement.removeEventListener("pointerdown", down);
