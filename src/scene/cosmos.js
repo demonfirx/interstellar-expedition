@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { createAstronaut, createAnimationClips } from "../models/astronaut.js";
 import { blackHoleFragment, blackHoleVertex } from "./shaders/black-hole.js";
+import { sampleFloat } from "../models/motion.js";
 
 export function createCosmos(canvas, { reducedMotion = false } = {}) {
   const renderer = new THREE.WebGLRenderer({
@@ -9,7 +10,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     antialias: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.setClearColor(0x04040c, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -37,6 +38,15 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     mixer = new THREE.AnimationMixer(mesh);
   mixer.clipAction(clips[0]).play();
   const waving = mixer.clipAction(clips[1]).play();
+  const greetingClip = clips[1].clone();
+  greetingClip.name = "AN_Astro_Requested_Greeting";
+  const greeting = mixer.clipAction(greetingClip).setLoop(THREE.LoopOnce, 1);
+  greeting.clampWhenFinished = true;
+  mixer.addEventListener("finished", (event) => {
+    if (event.action !== greeting) return;
+    greeting.fadeOut(0.55);
+    waving.reset().setEffectiveWeight(1).fadeIn(0.55).play();
+  });
   mixer.update(0.45);
 
   const material = new THREE.ShaderMaterial({
@@ -146,7 +156,6 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     lastX = 0,
     downX = 0,
     downY = 0,
-    waveBoost = 0,
     baseX = 0,
     baseY = 0;
   const pointer = new THREE.Vector2();
@@ -182,18 +191,20 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     if (active && visible) {
       if (!paused) {
         time += dt;
-        mixer.update(dt * (1 + waveBoost));
-        waveBoost = Math.max(0, waveBoost - dt * 0.5);
+        mixer.update(dt);
       }
       rotation = THREE.MathUtils.damp(rotation, targetRotation, 5, dt);
-      astronaut.position.x =
-        baseX + (paused ? 0 : Math.sin(time * 0.23) * 0.17);
-      astronaut.position.y =
-        baseY + (paused ? 0 : Math.sin(time * 0.58) * 0.19);
+      const drift = sampleFloat(time);
+      astronaut.position.set(
+        baseX + drift.position.x,
+        baseY + drift.position.y,
+        drift.position.z,
+      );
+      const counterbalance = (bones.L_arm_upper.rotation.z - 0.22) * 0.018;
       astronaut.rotation.set(
-        0.08 + pointer.y * 0.035,
-        -0.32 + rotation + pointer.x * 0.13,
-        -0.19 + (paused ? 0 : Math.sin(time * 0.4) * 0.065),
+        drift.rotation.x + pointer.y * 0.035,
+        drift.rotation.y + rotation + pointer.x * 0.13,
+        drift.rotation.z - counterbalance,
       );
       material.uniforms.uTime.value = time;
       material.uniforms.uPointer.value.lerp(pointer, paused ? 0 : 0.025);
@@ -204,12 +215,15 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
   }
   requestAnimationFrame(frame);
   function wave() {
-    waving.reset().play();
-    waveBoost = 0.7;
-    if (paused) {
-      mixer.update(0.45);
-      renderer.render(scene, camera);
-    }
+    if (paused || greeting.isRunning()) return;
+    if (
+      waving.getEffectiveWeight() > 0.5 &&
+      waving.time > 0.4 &&
+      waving.time < 6.3
+    )
+      return;
+    greeting.reset().setEffectiveWeight(1).fadeIn(0.55).play();
+    waving.fadeOut(0.55);
   }
   function down(e) {
     if (e.button !== 0) return;

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { greetingPose } from "./motion.js";
 
 /** Original rigid-weighted voxel model. Each block follows exactly one bone. */
 export function createAstronaut() {
@@ -170,8 +171,9 @@ export function createAstronaut() {
 function quaternionTrack(name, duration, pose) {
   const times = [],
     values = [];
-  for (let i = 0; i <= 96; i++) {
-    const t = i / 96,
+  const samples = Math.ceil(duration * 24);
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples,
       e = pose(t === 1 ? 0 : t);
     times.push(t * duration);
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(...e));
@@ -182,59 +184,58 @@ function quaternionTrack(name, duration, pose) {
 
 export function createAnimationClips() {
   const tau = Math.PI * 2;
-  const floating = new THREE.AnimationClip("AN_Astro_Float", 8, [
-    quaternionTrack("R_arm_upper", 8, (t) => [
-      0.1 + 0.1 * Math.sin(t * tau),
+  const floating = new THREE.AnimationClip("AN_Astro_Float", 12, [
+    quaternionTrack("R_arm_upper", 12, (t) => [
+      0.1 + 0.07 * Math.sin(t * tau - 0.4),
       0,
-      -0.28 + 0.09 * Math.cos(t * tau),
+      -0.28 + 0.065 * Math.cos(t * tau - 0.5),
     ]),
-    quaternionTrack("R_arm_lower", 8, (t) => [
-      -0.2 + 0.1 * Math.sin(t * tau),
+    quaternionTrack("R_arm_lower", 12, (t) => [
+      -0.2 + 0.08 * Math.sin(t * tau - 0.95),
       0,
       -0.16,
     ]),
-    quaternionTrack("L_leg_upper", 8, (t) => [
-      -0.19 + 0.1 * Math.sin(t * tau),
+    quaternionTrack("R_hand", 12, (t) => [
+      0.04 * Math.sin(t * tau - 1.3),
       0,
-      0.14,
+      -0.04,
     ]),
-    quaternionTrack("L_leg_lower", 8, (t) => [
-      0.29 + 0.15 * Math.sin(t * tau),
+    quaternionTrack("L_leg_upper", 12, (t) => [
+      -0.2 + 0.13 * Math.sin(t * tau),
+      0,
+      0.15 + 0.035 * Math.sin(t * tau - 0.3),
+    ]),
+    quaternionTrack("L_leg_lower", 12, (t) => [
+      0.32 + 0.15 * Math.sin(t * tau - 0.65),
       0,
       0,
     ]),
-    quaternionTrack("R_leg_upper", 8, (t) => [
-      0.1 + 0.1 * Math.sin(t * tau + 0.8),
+    quaternionTrack("L_foot", 12, (t) => [
+      0.055 * Math.sin(t * tau - 1.1),
       0,
-      -0.18,
+      0.015,
     ]),
-    quaternionTrack("R_leg_lower", 8, (t) => [
-      0.15 + 0.07 * Math.cos(t * tau),
+    quaternionTrack("R_leg_upper", 12, (t) => [
+      0.06 + 0.11 * Math.sin(t * tau + 1.1),
+      0,
+      -0.18 - 0.025 * Math.sin(t * tau + 0.7),
+    ]),
+    quaternionTrack("R_leg_lower", 12, (t) => [
+      0.21 + 0.11 * Math.sin(t * tau + 0.45),
       0,
       0,
+    ]),
+    quaternionTrack("R_foot", 12, (t) => [
+      0.045 * Math.sin(t * tau - 0.1),
+      0,
+      -0.015,
     ]),
   ]);
-  const waving = new THREE.AnimationClip("AN_Astro_Wave", 4, [
-    quaternionTrack("L_arm_upper", 4, (t) => [
-      0.04,
-      0,
-      2.15 + 0.08 * Math.sin(t * tau),
-    ]),
-    quaternionTrack("L_arm_lower", 4, (t) => [
-      0,
-      0,
-      0.48 + 0.38 * Math.sin(t * tau * 3),
-    ]),
-    quaternionTrack("L_hand", 4, (t) => [
-      0.1 * Math.sin(t * tau * 3),
-      0,
-      0.12 * Math.sin(t * tau * 3 + 0.3),
-    ]),
-    quaternionTrack("head", 4, (t) => [
-      0.02,
-      0.08 * Math.sin(t * tau),
-      -0.06 + 0.04 * Math.sin(t * tau),
-    ]),
+  const waving = new THREE.AnimationClip("AN_Astro_Wave", 9, [
+    quaternionTrack("L_arm_upper", 9, (t) => greetingPose(t * 9).upper),
+    quaternionTrack("L_arm_lower", 9, (t) => greetingPose(t * 9).lower),
+    quaternionTrack("L_hand", 9, (t) => greetingPose(t * 9).wrist),
+    quaternionTrack("head", 9, (t) => greetingPose(t * 9).head),
   ]);
   return [floating, waving];
 }

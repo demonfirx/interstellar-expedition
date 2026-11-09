@@ -16,9 +16,16 @@ export const blackHoleFragment = `
   mat2 turn(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
   float band(float r,float inner,float outer){return smoothstep(inner,inner+.018,r)*(1.-smoothstep(outer-.018,outer,r));}
   vec3 flow(vec2 p,vec2 center,float speed,float pulse){
-    vec2 shifted=turn(uTime*speed)*p;
-    shifted*=1.+sin(uTime*.22+atan(p.y,p.x)*5.+pulse)*.0025;
-    return texture2D(uImage,clamp(center+shifted/vec2(IMAGE_ASPECT,1.),.001,.999)).rgb;
+    // Two short, overlapping advection windows make flow continuous without
+    // eventually carrying a fragment of the equatorial disk across the halo.
+    float span=.15;
+    float first=fract(uTime*speed/span+pulse*.13);
+    float second=fract(first+.5);
+    float blend=abs(1.-2.*first);
+    float ripple=1.+sin(uTime*.32+atan(p.y,p.x)*5.+pulse)*.003;
+    vec2 uvA=center+(turn((first-.5)*span)*p*ripple)/vec2(IMAGE_ASPECT,1.);
+    vec2 uvB=center+(turn((second-.5)*span)*p*ripple)/vec2(IMAGE_ASPECT,1.);
+    return mix(texture2D(uImage,clamp(uvA,.001,.999)).rgb,texture2D(uImage,clamp(uvB,.001,.999)).rgb,blend);
   }
   void main(){
     if(uReady<.5){gl_FragColor=vec4(0.);return;}
@@ -40,25 +47,25 @@ export const blackHoleFragment = `
     float b3=band(r,.425,.505)*behindDisk;
     float b4=band(r,.505,.65)*behindDisk;
     vec3 col=base;
-    col=mix(col,flow(p,center,.024,0.),b1*.82);
-    col=mix(col,flow(p,center,.015,1.4),b2*.84);
-    col=mix(col,flow(p,center,-.009,2.8),b3*.77);
-    col=mix(col,flow(p,center,.006,4.2),b4*.64);
+    col=mix(col,flow(p,center,.055,0.),b1*.90);
+    col=mix(col,flow(p,center,.034,1.4),b2*.92);
+    col=mix(col,flow(p,center,-.022,2.8),b3*.86);
+    col=mix(col,flow(p,center,.014,4.2),b4*.76);
     // The equatorial disk flows laterally while its original silhouette stays fixed.
-    vec2 diskUv=uv+vec2(sin(uTime*.16)*.026,sin(uv.x*37.-uTime*.7)*.0025);
+    vec2 diskUv=uv+vec2(sin(uTime*.24)*.043,sin(uv.x*37.-uTime*1.05)*.0032);
     vec3 diskFlow=texture2D(uImage,clamp(diskUv,.001,.999)).rgb;
-    col=mix(col,diskFlow,disk*.48*clearCenter);
+    col=mix(col,diskFlow,disk*.60*clearCenter);
     float ribbons=(b1+b2+b3+b4)*clearCenter;
-    float shimmer=sin(a*19.+r*260.-uTime*.9)*.045+sin(a*8.-r*130.+uTime*.55)*.026;
+    float shimmer=sin(a*19.+r*260.-uTime*1.1)*.065+sin(a*8.-r*130.+uTime*.7)*.038;
     col*=1.+shimmer*ribbons;
     // Thin travelling arcs thread the light bands; the dark event horizon stays intact.
     float threads=0.;
     for(int i=0;i<5;i++){
       float fi=float(i);
-      float rr=.311+fi*.028+sin(a*6.+uTime*.26+fi)*.003;
-      float line=exp(-abs(r-rr)*850.);
-      float arc=pow(.5+.5*sin(a*3.-uTime*(.32+fi*.07)+fi*1.7),7.);
-      threads+=line*arc*(.012-fi*.0014);
+      float rr=.311+fi*.036+sin(a*6.+uTime*.35+fi)*.0035;
+      float line=exp(-abs(r-rr)*680.);
+      float arc=pow(.5+.5*sin(a*4.-uTime*(.72+fi*.11)+fi*1.7),5.);
+      threads+=line*arc*(.053-fi*.005);
     }
     col+=vec3(.29,.38,.87)*threads*behindDisk;
     float vignette=1.-smoothstep(.35,.9,length((vUv-.5)*vec2(.9,1.)))*.19;

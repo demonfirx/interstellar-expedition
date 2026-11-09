@@ -23,6 +23,7 @@ npm run preview
 src/
   main.js                       Kontrol ikon dan shortcut
   models/astronaut.js            Model voxel, skeleton, klip animasi
+  models/motion.js               Kurva melayang dan dadah dengan jeda alami
   scene/cosmos.js                Scene, pencahayaan, partikel, kamera
   scene/shaders/black-hole.js    Animasi lapisan gambar referensi
   styles/main.css               Canvas penuh dan kontrol minimal
