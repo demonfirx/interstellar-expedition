@@ -4,18 +4,33 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
   layer.className = "quote-dust";
   layer.setAttribute("aria-hidden", "true");
   host.append(layer);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.classList.add("quote-dust-trails");
+  svg.setAttribute("aria-hidden", "true");
+  layer.append(svg);
   const particles = new Set();
+  const trails = new Set();
   let reduced = reducedMotion,
     paused = false,
     hidden = document.hidden,
     disposed = false,
     stroke = null,
-    strokeId = 0;
+    strokeId = 0,
+    emissionId = 0;
   const attractor = { x: innerWidth * 0.66, y: innerHeight * 0.56 };
 
   function remove(particle) {
+    removeTrail(particle);
     particles.delete(particle);
     particle.element.remove();
+  }
+  function removeTrail(particle) {
+    const trail = particle.trail;
+    if (!trail) return;
+    particle.trail = null;
+    trails.delete(trail);
+    trail.animation.cancel();
+    trail.path.remove();
   }
   function clear() {
     for (const particle of particles) {
@@ -24,8 +39,66 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     }
   }
   function syncPlayback() {
-    for (const { animation } of particles)
-      paused || hidden ? animation.pause() : animation.play();
+    for (const particle of particles)
+      for (const animation of [particle.animation, particle.trail?.animation])
+        if (animation) paused || hidden ? animation.pause() : animation.play();
+  }
+  function createTrail(particle, points, duration) {
+    const compact = innerWidth < 600;
+    if (
+      !particle.trailCandidate ||
+      points[0].opacity < 0.08 ||
+      trails.size >= (compact ? 2 : 3)
+    )
+      return;
+    let length = 0;
+    const distances = points.map((point, i) => {
+      if (i)
+        length += Math.hypot(
+          point.x - points[i - 1].x,
+          point.y - points[i - 1].y,
+        );
+      return length;
+    });
+    if (length < 4) return;
+    const tail = Math.min(compact ? 6 : 8, length * 0.38);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.classList.add("quote-dust-trail");
+    path.setAttribute(
+      "d",
+      points
+        .map(
+          (point, i) =>
+            `${i ? "L" : "M"}${point.x.toFixed(2)},${point.y.toFixed(2)}`,
+        )
+        .join(" "),
+    );
+    path.setAttribute(
+      "stroke",
+      particle.element.style.getPropertyValue("--dust-core"),
+    );
+    path.setAttribute("stroke-width", compact ? "0.5" : "0.6");
+    path.style.strokeDasharray = `${tail}px ${length + tail}px`;
+    svg.append(path);
+    const animation = path.animate(
+      points.map((point, i) => ({
+        strokeDashoffset: `${tail - distances[i]}px`,
+        opacity:
+          point.opacity *
+          0.32 *
+          Math.sin((Math.min(1, point.offset / 0.18) * Math.PI) / 2),
+        offset: point.offset,
+      })),
+      { duration, easing: "linear", fill: "both" },
+    );
+    const trail = { path, animation };
+    particle.trail = trail;
+    trails.add(trail);
+    const finish = () => {
+      if (particle.trail === trail) removeTrail(particle);
+    };
+    animation.finished.then(finish, finish);
+    if (paused || hidden) animation.pause();
   }
   function watch(particle, animation) {
     particle.animation = animation;
@@ -62,7 +135,8 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     const tangentY = particle.driftY * (duration / particle.duration);
     const opacity = opacityAt(progress),
       scale = scaleAt(progress);
-    const keyframes = [];
+    const keyframes = [],
+      points = [];
     for (let i = 0; i <= 24; i++) {
       const s = i / 24;
       // Preserve the incoming tangent. A small, tapered curl leads into the inward pull.
@@ -86,9 +160,11 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
         tangentY * coast +
         (dy / distance) * inward +
         (dx / distance) * curlSide;
+      const fade = opacity * Math.pow(1 - s, 1.35);
+      points.push({ x: px, y: py, offset: s, opacity: fade });
       keyframes.push({
         transform: `translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) scale(${(scale * (1 - 0.75 * s)).toFixed(4)})`,
-        opacity: opacity * Math.pow(1 - s, 1.35),
+        opacity: fade,
         offset: s,
       });
     }
@@ -100,6 +176,7 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     });
     particle.element.dataset.phase = "attracted";
     watch(particle, animation);
+    createTrail(particle, points, duration);
     if (paused || hidden) animation.pause();
   }
   return {
@@ -166,6 +243,7 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
         duration,
         strokeId: stroke.id,
         orbitRadius: compact ? 4 + Math.random() * 3 : 6 + Math.random() * 4,
+        trailCandidate: ++emissionId % 2 === 0,
       };
       particles.add(particle);
       watch(particle, animation);
