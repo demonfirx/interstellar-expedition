@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "project": {
+    "name": "insterstellar",
+    "productType": "Interactive space experience",
+    "stack": ["Vite", "Three.js", "JavaScript"]
+  },
+  "sources": {
+    "tokens": [],
+    "components": [],
+    "assets": [],
+    "instructions": []
+  },
+  "design": {
+    "colorMode": "dark",
+    "colors": {},
+    "typography": {},
+    "spacing": {},
+    "radius": {},
+    "shadows": {},
+    "motion": {},
+    "density": "unknown"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [],
+    "avoid": []
+  },
+  "decisions": [
+    "Cinematic black hole reference with original rigged voxel astronaut",
+    "Lime actions, Manrope display and Roboto Mono telemetry",
+    "Responsive mission-control composition with reduced motion"
+  ],
+  "evidence": [],
+  "generatedAt": "2026-11-09T01:51:38.534Z"
+}
