@@ -1,6 +1,6 @@
 # Interstellar
 
-Pemandangan layar penuh tanpa tulisan. Kapal layar low poly menjelajahi lautan kosmik di bawah black hole berlapis. Cincin memiliki glow tipis, air memantulkan cahaya, layar bergerak lembut, dan lambung mengikuti gelombang.
+Pemandangan layar penuh tanpa tulisan. Kapal layar low poly berlayar pelan menuju black hole melalui jalur melengkung. Jejak ombak tertinggal mengikuti perjalanan, dan pantulan kapal bergerak di atas air beriak. Cincin memiliki glow tipis, layar bergerak lembut, dan lambung mengikuti gelombang.
 
 ## Menjalankan
 
@@ -28,6 +28,8 @@ src/
   scene/camera-motion.js         Lintasan kamera dan kedalaman parallax
   scene/accretion-lighting.js    Pantulan lingkungan dan cahaya black hole
   scene/cosmic-ocean.js          Air, pantulan, dan riak di belakang kapal
+  scene/ship-wake.js             Jejak ombak berdasarkan riwayat jalur kapal
+  scene/vessel-reflection.js     Kamera cermin khusus kapal untuk pantulan air
   scene/shaders/black-hole.js    Animasi lapisan gambar referensi
   styles/main.css               Canvas penuh dan kontrol minimal
   ui/ambient.js                 Sintesis suara ambient

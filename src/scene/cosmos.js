@@ -1,10 +1,15 @@
 import * as THREE from "three";
 import { createSailingVessel } from "../models/sailing-vessel.js";
 import { blackHoleFragment, blackHoleVertex } from "./shaders/black-hole.js";
-import { sampleSailingMotion, SEA_LEVEL } from "../models/sea-motion.js";
+import {
+  sampleSailingMotion,
+  SEA_LEVEL,
+  createVoyageRoute,
+} from "../models/sea-motion.js";
 import { sampleCameraMotion } from "./camera-motion.js";
 import { createAccretionLighting } from "./accretion-lighting.js";
 import { createCosmicOcean } from "./cosmic-ocean.js";
+import { createShipWake } from "./ship-wake.js";
 
 export function createCosmos(canvas, { reducedMotion = false } = {}) {
   const renderer = new THREE.WebGLRenderer({
@@ -41,7 +46,8 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     renderer,
     vessel,
   });
-  const ocean = createCosmicOcean(scene);
+  const ocean = createCosmicOcean(scene, vessel);
+  const wake = createShipWake(scene);
 
   const material = new THREE.ShaderMaterial({
     vertexShader: blackHoleVertex,
@@ -141,7 +147,8 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     targetRotation = 0,
     dragging = false,
     lastX = 0,
-    baseX = 0;
+    baseX = 0,
+    route;
   const pointer = new THREE.Vector2();
   const smoothPointer = new THREE.Vector2();
   function resize() {
@@ -156,6 +163,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     material.uniforms.uResolution.value.set(width, height);
     vessel.root.scale.setScalar(mobile ? 0.57 : 0.72);
     baseX = h * camera.aspect * (mobile ? -0.075 : -0.17);
+    route = createVoyageRoute(baseX, camera.aspect);
   }
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(canvas);
@@ -191,7 +199,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       );
       material.uniforms.uCameraScale.value = cameraMotion.background.scale;
       rotation = THREE.MathUtils.damp(rotation, targetRotation, 5, dt);
-      const sailing = sampleSailingMotion(time, baseX);
+      const sailing = sampleSailingMotion(time, baseX, camera.aspect, route);
       vessel.root.position.set(sailing.x, SEA_LEVEL + sailing.y, sailing.z);
       vessel.root.rotation.set(
         sailing.roll,
@@ -205,6 +213,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
         vessel.root.rotation.y,
         renderer,
       );
+      wake.update(time, route, vessel.root.scale.x);
       material.uniforms.uTime.value = time;
       accretionLighting.update(time, camera.aspect);
       farStars.rotation.z = time * 0.00035;
@@ -283,6 +292,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       });
       texture.dispose();
       accretionLighting.dispose();
+      ocean.dispose();
       renderer.dispose();
     },
   };
