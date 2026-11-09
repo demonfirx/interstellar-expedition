@@ -70,6 +70,11 @@ export const blackHoleFragment = `
       threads+=line*arc*(.053-fi*.005);
     }
     col+=vec3(.29,.38,.87)*threads*behindDisk;
+    // Local low-gain bloom lifts the halo edges while keeping bright cores intact.
+    vec3 halo=(texture2D(uImage,clamp(uv+vec2(.005,0.),.001,.999)).rgb+texture2D(uImage,clamp(uv-vec2(.005,0.),.001,.999)).rgb+texture2D(uImage,clamp(uv+vec2(0.,.008),.001,.999)).rgb+texture2D(uImage,clamp(uv-vec2(0.,.008),.001,.999)).rgb)*.25;
+    float luminance=dot(col,vec3(.2126,.7152,.0722));
+    float headroom=1.-smoothstep(.2,.8,luminance);
+    col+=max(halo-.12,0.)*.085*headroom*clearCenter;
     float vignette=1.-smoothstep(.35,.9,length((vUv-.5)*vec2(.9,1.)))*.19;
     col*=vignette;
     gl_FragColor=vec4(col,1.);

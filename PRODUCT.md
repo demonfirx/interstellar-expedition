@@ -1,8 +1,8 @@
 # Product
 
-Website artistik bertema gambar black hole Interstellar yang diberikan pengguna. Astronaut 3D kartun pixel dibuat dan dirig di proyek ini, lalu dianimasikan melayang dan melambaikan tangan.
+Website artistik bertema gambar black hole Interstellar yang diberikan pengguna, dengan kapal layar 3D yang menjelajahi lautan kosmik. Scene memenuhi layar dan tidak menampilkan tulisan.
 
-Permintaan terbaru: tampilan bersih tanpa tulisan; gambar sumber harus bergerak pada lapisan cahaya yang mengelilingi black hole; astronaut harus menyatu dengan tema biru-ungu gambar. Folder harus rapi. Source landing awal diarsipkan untuk kemungkinan penggunaan berikutnya.
+Permintaan terbaru: astronaut diganti kapal yang menjelajahi lautan di black hole. Kapal layar low poly, permukaan air kosmik, glow cincin yang lembut, dan pantulan kaca kabin menggantikan pantulan visor. Kamera pelan, parallax, dan tampilan tanpa tulisan tetap dipertahankan. Folder harus rapi. Source versi sebelumnya disimpan untuk kemungkinan penggunaan berikutnya.
 
 ## Platform dan stack
 

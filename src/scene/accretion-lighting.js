@@ -33,15 +33,21 @@ const reflectionFragment = `
     vec3 reflection=texture2D(uSource,clamp(uv,.001,.999)).rgb;
     float light=dot(reflection,vec3(.2126,.7152,.0722));
     float edge=1.-smoothstep(.44,.5,max(abs(vUv.x-.5),abs(vUv.y-.5)));
-    float alpha=smoothstep(.018,.38,light)*edge*.43*uGain;
-    gl_FragColor=vec4(reflection*.9,alpha);
+    vec3 halo=(texture2D(uSource,clamp(uv+vec2(.012,0.),.001,.999)).rgb+texture2D(uSource,clamp(uv-vec2(.012,0.),.001,.999)).rgb+texture2D(uSource,clamp(uv+vec2(0.,.018),.001,.999)).rgb+texture2D(uSource,clamp(uv-vec2(0.,.018),.001,.999)).rgb)*.25;
+    reflection+=max(halo-.1,0.)*.075*(1.-smoothstep(.18,.8,light));
+    float alpha=smoothstep(.018,.38,light)*edge*.34*uGain;
+    gl_FragColor=vec4(reflection*.85,alpha);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
 `;
 
-/** Static prefiltered image lighting plus a small animated, head-bound visor reflection. */
-export function createAccretionLighting({ scene, renderer, bones, mesh }) {
+/** Prefiltered accretion light and restrained, glowing reflections on cabin glass. */
+export function createAccretionLighting({ scene, renderer, vessel }) {
+  const surfaces = vessel.materials.filter(
+    (surface) => surface.isMeshStandardMaterial,
+  );
+  const baseStrength = surfaces.map((surface) => surface.envMapIntensity);
   const rim = new THREE.DirectionalLight("#aebeff", 3.9);
   rim.position.set(5, 2, -5);
   scene.add(rim);
@@ -49,7 +55,7 @@ export function createAccretionLighting({ scene, renderer, bones, mesh }) {
   const warm = new THREE.PointLight("#e9b4ca", 9, 20, 2);
   scene.add(cool, warm);
   const material = new THREE.ShaderMaterial({
-    name: "Accretion_Visor_Reflection",
+    name: "Accretion_Cabin_Reflection",
     vertexShader: reflectionVertex,
     fragmentShader: reflectionFragment,
     transparent: true,
@@ -59,17 +65,20 @@ export function createAccretionLighting({ scene, renderer, bones, mesh }) {
       uSource: { value: null },
       uReady: { value: 0 },
       uTime: { value: 0 },
-      uGain: { value: 0.8 },
+      uGain: { value: 0.62 },
     },
   });
-  const reflection = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.2, 0.8),
-    material,
-  );
-  reflection.name = "Visor_Accretion_Reflection";
-  reflection.position.set(0, 0.48, 0.928);
-  reflection.renderOrder = 2;
-  bones.head.add(reflection);
+  for (const window of vessel.reflectors) {
+    const reflection = new THREE.Mesh(
+      new THREE.PlaneGeometry(window.width, window.height),
+      material,
+    );
+    reflection.name = "Cabin_Accretion_Reflection";
+    reflection.position.set(...window.position);
+    reflection.rotation.y = window.rotationY;
+    reflection.renderOrder = 2;
+    vessel.root.add(reflection);
+  }
   let environment;
   return {
     setSource(texture) {
@@ -79,7 +88,7 @@ export function createAccretionLighting({ scene, renderer, bones, mesh }) {
       try {
         environment = generator.fromEquirectangular(texture);
         scene.environment = environment.texture;
-        for (const surface of mesh.material) {
+        for (const surface of surfaces) {
           surface.envMap = environment.texture;
           surface.needsUpdate = true;
         }
@@ -108,20 +117,20 @@ export function createAccretionLighting({ scene, renderer, bones, mesh }) {
         0,
       );
       material.uniforms.uTime.value = time;
-      mesh.material[0].envMapIntensity = 0.5 * pulse;
-      mesh.material[1].envMapIntensity = 1.7 * pulse;
-      for (const surface of mesh.material)
-        surface.envMapRotation.copy(scene.environmentRotation);
-      material.uniforms.uGain.value = 0.8 * pulse;
+      for (let i = 0; i < surfaces.length; i++) {
+        surfaces[i].envMapIntensity = baseStrength[i] * pulse;
+        surfaces[i].envMapRotation.copy(scene.environmentRotation);
+      }
+      material.uniforms.uGain.value = 0.62 * pulse;
     },
     dispose() {
       if (environment) {
-        for (const surface of mesh.material)
+        for (const surface of surfaces)
           if (surface.envMap === environment.texture) surface.envMap = null;
         if (scene.environment === environment.texture) scene.environment = null;
         environment.dispose();
       }
-      // The owning scene disposes the head-bound reflection mesh with its other meshes.
+      // The owning scene disposes the cabin reflection meshes with its other meshes.
     },
   };
 }

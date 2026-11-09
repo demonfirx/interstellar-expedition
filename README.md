@@ -1,6 +1,6 @@
 # Interstellar
 
-Pemandangan layar penuh tanpa tulisan. Gambar referensi black hole dianimasikan menjadi empat lapisan cahaya yang bergerak dengan kecepatan berbeda, disertai aliran cakram tengah, bintang, dan astronaut voxel biru-ungu yang melayang sambil dadah.
+Pemandangan layar penuh tanpa tulisan. Kapal layar low poly menjelajahi lautan kosmik di bawah black hole berlapis. Cincin memiliki glow tipis, air memantulkan cahaya, layar bergerak lembut, dan lambung mengikuti gelombang.
 
 ## Menjalankan
 
@@ -22,19 +22,20 @@ npm run preview
 ```text
 src/
   main.js                       Kontrol ikon dan shortcut
-  models/astronaut.js            Model voxel, skeleton, klip animasi
-  models/motion.js               Kurva melayang dan dadah dengan jeda alami
+  models/sailing-vessel.js       Model kapal, kabin, layar, dan tali rigging
+  models/sea-motion.js           Gelombang serta gerak mengapung kapal
   scene/cosmos.js                Scene, pencahayaan, partikel, kamera
   scene/camera-motion.js         Lintasan kamera dan kedalaman parallax
   scene/accretion-lighting.js    Pantulan lingkungan dan cahaya black hole
+  scene/cosmic-ocean.js          Air, pantulan, dan riak di belakang kapal
   scene/shaders/black-hole.js    Animasi lapisan gambar referensi
   styles/main.css               Canvas penuh dan kontrol minimal
   ui/ambient.js                 Sintesis suara ambient
 public/
   assets/gargantua-reference.webp
-  models/astro-rigged.glb        Model dengan rig 16 tulang dan 2 animasi
-scripts/export-astronaut.mjs     Ekspor ulang GLB
-tests/astronaut.test.js          Validasi rig, animasi, dan file GLB
+  models/lumen-sailer.glb        Model kapal statis siap diimpor ke editor 3D
+scripts/export-vessel.mjs        Ekspor ulang GLB kapal
+tests/vessel.test.js             Validasi geometri dan kontak dengan gelombang
 docs/
   archive/                      Versi landing awal, disimpan untuk nanti
   reference/                    Gambar original dari pengguna
@@ -45,13 +46,14 @@ docs/
 
 ## Kontrol
 
-- Klik atau ketuk canvas: astronaut dadah.
-- Seret: putar astronaut.
+- Seret: putar kapal.
 - Gerakkan mouse: parallax lembut dengan respons yang diredam. Kamera juga bergerak pelan saat tidak ada input; bintang jauh, lapisan tengah, dan debu depan menempati kedalaman berbeda.
-- **W**: dadah; **M**: suara; **R**: reset rotasi; **Spasi**: jeda/lanjutkan.
+- **M**: suara; **R**: reset rotasi; **Spasi**: jeda/lanjutkan.
 - Ikon kecil kanan bawah: jeda, suara, dan layar penuh. Kontrol muncul saat pointer masuk atau menerima fokus keyboard.
 - Preferensi reduced motion dihormati. Suara hanya mulai setelah interaksi.
 
-Ekspor ulang model: `node scripts/export-astronaut.mjs`.
+Ekspor ulang kapal: `node scripts/export-vessel.mjs`. GLB menyimpan model statis; gelombang dan gerak layar dijalankan oleh kode scene.
+
+Source dan GLB astronaut sebelumnya dipertahankan sebagai aset versi terdahulu; tidak dipakai pada scene aktif.
 
 Shader menggerakkan piksel gambar sumber pada empat pita radial, bukan hanya menggeser seluruh gambar. Masker mempertahankan pusat gelap dan bentuk cakram tengah. Pengalaman artistik, bukan simulasi astrofisika.

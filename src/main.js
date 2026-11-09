@@ -84,7 +84,6 @@ document.addEventListener("keydown", (e) => {
     /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)
   )
     return;
-  if (e.key.toLowerCase() === "w") scene?.wave();
   if (e.key.toLowerCase() === "m") toggleSound();
   if (e.key.toLowerCase() === "r") scene?.resetCamera();
   if (e.code === "Space" && e.target.tagName !== "BUTTON") {

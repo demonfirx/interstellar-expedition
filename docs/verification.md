@@ -1,12 +1,11 @@
 # Verification
 
-- Delapan tes Node: hierarki dan bobot skeleton; pemisahan render group suit/visor serta normal yang valid; loop kedua animasi; file GLB dimuat kembali dengan 16 tulang serta dua klip yang utuh; fase dadah dan jeda; batas kecepatan lintasan; kontinuitas kamera; urutan pergeseran parallax melalui proyeksi kamera perspektif.
-- Scene terbaru diperiksa pada viewport desktop dan 390 × 844. Canvas memenuhi layar; tidak ada tulisan terlihat (`document.body.innerText` kosong).
-- Shader berhasil dikompilasi tanpa error console pada preview terbaru. Empat pita texture dan aliran cakram bergerak; pusat gelap dipertahankan.
-- Tombol jeda dan lanjutkan terverifikasi melalui state kontrol. Model tetap melayang dan dadah dengan palet biru-ungu.
-- Revisi gerak: aliran lapisan dipercepat sekitar 2,3× dengan adveksi bergantian yang dibatasi agar bentuk halo terjaga. Kurva melayang memakai lintasan gabungan yang kontinu; gerak pergelangan dan lutut mengikuti gerak utama dengan jeda fase.
-- Build produksi dijalankan kembali setelah revisi scene. Ukuran engine Three.js memunculkan peringatan bundle di atas 500 KB uncompressed.
-- Revisi kedalaman: kamera perspektif dengan drift dan dolly pelan, damping mouse berbasis waktu, tiga lapisan bintang, serta overscan background. Canvas dan buffer rendering diperiksa pada desktop dan 390 × 844; tidak ada teks atau overflow.
-- Revisi pencahayaan: environment dari gambar sumber, visor clearcoat dengan pantulan cincin yang mengikuti tulang kepala, serta rim light biru-ungu dan pantulan hangat. Shader dan environment berhasil dimuat tanpa error/warning console. GLB terbaru berukuran sekitar 318 KB.
+- Sepuluh tes Node lulus: validitas geometri dan normal kapal, keberadaan dua layar dan material kaca, kontak dengan gelombang, batas kecepatan gerak, kamera perspektif dan urutan parallax, serta regresi aset astronaut versi terdahulu.
+- Scene kapal diperiksa pada desktop dan 390 × 844. Canvas dan buffer sesuai viewport, tidak ada overflow, dan `document.body.innerText` kosong.
+- Shader laut, halo cincin, dan pantulan kabin berhasil dikompilasi. Tidak ada error atau warning console pada preview terakhir.
+- Jeda dan lanjutkan terverifikasi melalui state kontrol. Semua gerak memakai waktu scene yang sama, termasuk kamera, gelombang, kapal, layar, dan pantulan.
+- Model kapal diekspor sebagai GLB statis sekitar 169 KB tanpa peringatan normal geometri. Gerakan layar dan gelombang ditangani runtime.
+- Build produksi berhasil. Engine Three.js memunculkan peringatan ukuran bundle di atas 500 KB uncompressed; bukan kegagalan build.
+- Glow lokal memiliki gain kecil dan pengurang berdasarkan luminance untuk menjaga inti cincin tetap terbaca. Pusat event horizon tidak diberi glow.
 
-Fullscreen native bergantung pada browser dan bisa tidak tersedia di panel embedded. Reduced motion mengikuti preferensi perangkat; emulasi preferensi otomatis tidak tersedia pada kontrol browser yang digunakan.
+Fullscreen native bergantung pada browser dan bisa tidak tersedia di panel embedded. Reduced motion mengikuti preferensi perangkat; emulasi preferensi otomatis tidak tersedia pada kontrol browser yang digunakan. Scene ini merupakan interpretasi artistik, bukan simulasi astrofisika.

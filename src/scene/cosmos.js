@@ -1,9 +1,10 @@
 import * as THREE from "three";
-import { createAstronaut, createAnimationClips } from "../models/astronaut.js";
+import { createSailingVessel } from "../models/sailing-vessel.js";
 import { blackHoleFragment, blackHoleVertex } from "./shaders/black-hole.js";
-import { sampleFloat } from "../models/motion.js";
+import { sampleSailingMotion, SEA_LEVEL } from "../models/sea-motion.js";
 import { sampleCameraMotion } from "./camera-motion.js";
 import { createAccretionLighting } from "./accretion-lighting.js";
+import { createCosmicOcean } from "./cosmic-ocean.js";
 
 export function createCosmos(canvas, { reducedMotion = false } = {}) {
   const renderer = new THREE.WebGLRenderer({
@@ -33,31 +34,14 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
   low.position.set(-4, -3, 3);
   scene.add(low);
 
-  const { mesh, bones } = createAstronaut(),
-    astronaut = new THREE.Group();
-  astronaut.name = "Astro_Float_Root";
-  astronaut.add(mesh);
-  scene.add(astronaut);
+  const vessel = createSailingVessel();
+  scene.add(vessel.root);
   const accretionLighting = createAccretionLighting({
     scene,
     renderer,
-    bones,
-    mesh,
+    vessel,
   });
-  const clips = createAnimationClips(),
-    mixer = new THREE.AnimationMixer(mesh);
-  mixer.clipAction(clips[0]).play();
-  const waving = mixer.clipAction(clips[1]).play();
-  const greetingClip = clips[1].clone();
-  greetingClip.name = "AN_Astro_Requested_Greeting";
-  const greeting = mixer.clipAction(greetingClip).setLoop(THREE.LoopOnce, 1);
-  greeting.clampWhenFinished = true;
-  mixer.addEventListener("finished", (event) => {
-    if (event.action !== greeting) return;
-    greeting.fadeOut(0.55);
-    waving.reset().setEffectiveWeight(1).fadeIn(0.55).play();
-  });
-  mixer.update(0.45);
+  const ocean = createCosmicOcean(scene);
 
   const material = new THREE.ShaderMaterial({
     vertexShader: blackHoleVertex,
@@ -90,6 +74,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       loaded.colorSpace = THREE.SRGBColorSpace;
       material.uniforms.uImage.value = loaded;
       material.uniforms.uReady.value = 1;
+      ocean.setSource(loaded);
       try {
         accretionLighting.setSource(loaded);
       } catch (error) {
@@ -144,24 +129,6 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
   const middleStars = starLayer("Middle_Stars", 140, 45, -5, 15, 0.04, 0.3);
   const nearStars = starLayer("Foreground_Dust", 32, 20, 7, 4, 0.025, 0.34);
 
-  const tetherCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-0.6, -0.25, -0.3),
-    new THREE.Vector3(-1.9, -1.3, -0.8),
-    new THREE.Vector3(-2.6, -0.8, -1.4),
-    new THREE.Vector3(-3.5, 0.2, -2),
-    new THREE.Vector3(-5.8, 0.6, -3),
-  ]);
-  const tether = new THREE.Mesh(
-    new THREE.TubeGeometry(tetherCurve, 48, 0.009, 4, false),
-    new THREE.MeshStandardMaterial({
-      color: "#6d779f",
-      transparent: true,
-      opacity: 0.37,
-      roughness: 0.8,
-    }),
-  );
-  astronaut.add(tether);
-
   let width = 1,
     height = 1,
     mobile = false,
@@ -174,10 +141,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     targetRotation = 0,
     dragging = false,
     lastX = 0,
-    downX = 0,
-    downY = 0,
-    baseX = 0,
-    baseY = 0;
+    baseX = 0;
   const pointer = new THREE.Vector2();
   const smoothPointer = new THREE.Vector2();
   function resize() {
@@ -190,10 +154,8 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     material.uniforms.uResolution.value.set(width, height);
-    astronaut.scale.setScalar(mobile ? 0.47 : 0.57);
-    baseX = h * camera.aspect * (mobile ? -0.12 : -0.23);
-    baseY = mobile ? -1.55 : -0.35;
-    astronaut.position.set(baseX, baseY, 0);
+    vessel.root.scale.setScalar(mobile ? 0.57 : 0.72);
+    baseX = h * camera.aspect * (mobile ? -0.075 : -0.17);
   }
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(canvas);
@@ -209,7 +171,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     if (active && visible) {
       if (!paused) {
         time += dt;
-        mixer.update(dt);
+        vessel.updateSails(time);
         smoothPointer.lerp(pointer, 1 - Math.exp(-dt * 2.2));
       }
       const cameraMotion = sampleCameraMotion(time, smoothPointer);
@@ -229,17 +191,19 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       );
       material.uniforms.uCameraScale.value = cameraMotion.background.scale;
       rotation = THREE.MathUtils.damp(rotation, targetRotation, 5, dt);
-      const drift = sampleFloat(time);
-      astronaut.position.set(
-        baseX + drift.position.x,
-        baseY + drift.position.y,
-        drift.position.z,
+      const sailing = sampleSailingMotion(time, baseX);
+      vessel.root.position.set(sailing.x, SEA_LEVEL + sailing.y, sailing.z);
+      vessel.root.rotation.set(
+        sailing.roll,
+        sailing.yaw + rotation,
+        sailing.pitch,
       );
-      const counterbalance = (bones.L_arm_upper.rotation.z - 0.22) * 0.018;
-      astronaut.rotation.set(
-        drift.rotation.x + smoothPointer.y * 0.035,
-        drift.rotation.y + rotation + smoothPointer.x * 0.13,
-        drift.rotation.z - counterbalance,
+      ocean.update(
+        time,
+        sailing.x,
+        sailing.z,
+        vessel.root.rotation.y,
+        renderer,
       );
       material.uniforms.uTime.value = time;
       accretionLighting.update(time, camera.aspect);
@@ -251,22 +215,10 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  function wave() {
-    if (paused || greeting.isRunning()) return;
-    if (
-      waving.getEffectiveWeight() > 0.5 &&
-      waving.time > 0.4 &&
-      waving.time < 6.3
-    )
-      return;
-    greeting.reset().setEffectiveWeight(1).fadeIn(0.55).play();
-    waving.fadeOut(0.55);
-  }
   function down(e) {
     if (e.button !== 0) return;
     dragging = true;
-    downX = lastX = e.clientX;
-    downY = e.clientY;
+    lastX = e.clientX;
     canvas.setPointerCapture(e.pointerId);
   }
   function move(e) {
@@ -282,8 +234,6 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
     }
   }
   function up(e) {
-    if (dragging && Math.hypot(e.clientX - downX, e.clientY - downY) < 8)
-      wave();
     dragging = false;
     if (e.pointerType === "touch") pointer.set(0, 0);
   }
@@ -305,12 +255,9 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
   canvas.addEventListener("pointerleave", leave);
   document.addEventListener("visibilitychange", visibility);
   return {
-    mesh,
-    bones,
-    clips,
+    vessel,
     scene,
     renderer,
-    wave,
     setPaused(value) {
       paused = value;
     },
