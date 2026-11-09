@@ -1,6 +1,6 @@
 # Verification
 
-- Dua belas tes Node lulus: validitas geometri dan normal kapal, keberadaan dua layar dan material kaca, kontak dengan gelombang, batas kecepatan gerak, perjalanan yang terus mendekati tujuan, kesesuaian haluan dengan arah laju, kontinuitas riwayat wake, kamera perspektif dan urutan parallax, serta regresi aset versi terdahulu.
+- Lima belas tes Node lulus: validitas geometri/normal kapal, kontak dengan gelombang, batas kecepatan, perjalanan dan haluan, kontinuitas wake, kamera/parallax, aset versi terdahulu, serta tiga pemeriksaan kamera belakang: posisi dan kecepatan, framing kapal/tiang di desktop dan portrait, dan pembekuan pose saat jeda.
 - Scene kapal diperiksa pada desktop dan 390 × 844. Canvas dan buffer sesuai viewport, tidak ada overflow, dan `document.body.innerText` kosong.
 - Shader laut, halo cincin, dan pantulan kabin berhasil dikompilasi. Tidak ada error atau warning console pada preview terakhir.
 - Jeda dan lanjutkan terverifikasi melalui state kontrol. Semua gerak memakai waktu scene yang sama, termasuk kamera, gelombang, kapal, layar, dan pantulan.
@@ -8,5 +8,6 @@
 - Build produksi berhasil. Engine Three.js memunculkan peringatan ukuran bundle di atas 500 KB uncompressed; bukan kegagalan build.
 - Glow lokal memiliki gain kecil dan pengurang berdasarkan luminance untuk menjaga inti cincin tetap terbaca. Pusat event horizon tidak diberi glow.
 - Pantulan kapal asli, termasuk lambung, kabin, dan layar, terlihat pada air melalui render kamera cermin. Capture dibatasi hanya pada layer kapal dengan render target 512 × 512; ripple dan fade diproses shader air. Wake berupa ribbon kecil yang mengikuti posisi buritan sebelumnya.
+- Kamera belakang diuji pada perjalanan sepuluh menit secara numerik: tetap di belakang kapal, jarak terjaga, dan tidak ada loncatan posisi. Kapal dan puncak tiang tetap berada dalam frame pada aspek desktop dan 390 × 844.
 
 Fullscreen native bergantung pada browser dan bisa tidak tersedia di panel embedded. Reduced motion mengikuti preferensi perangkat; emulasi preferensi otomatis tidak tersedia pada kontrol browser yang digunakan. Scene ini merupakan interpretasi artistik, bukan simulasi astrofisika.

@@ -6,9 +6,9 @@ Satu scene penuh tanpa teks terlihat. Gambar black hole menjadi latar lautan kos
 - Kapal: lambung biru gelap, dek kayu redup, dua layar keperakan, kabin dengan pantulan kaca, dan lampu kecil yang lembut.
 - Pantulan: kaca kabin dan air menerima cahaya biru-ungu serta sedikit kilau hangat. Glow beramplitudo rendah; inti cincin terang tidak diperkuat.
 - Empat lapisan radial dari gambar sumber bergerak independen. Cakram tengah memiliki aliran lateral; pusat gelap dipertahankan.
-- Desktop: kapal di kiri bawah. Mobile: kapal lebih dekat tengah bawah, tetap ada ruang untuk cincin black hole.
-- Perjalanan: kapal melaju perlahan ke black hole, semakin jauh dan kecil secara perspektif. Jejak ombak tertinggal di lintasan dan pantulan cermin di air dilembutkan oleh riak.
-- Kedalaman: kamera perspektif dengan gerak pelan, parallax mouse yang diredam, air 3D, dan tiga lapisan partikel.
+- Framing: sudut belakang agak menyamping, kapal di bagian bawah frame, dengan ruang untuk tiang, jejak ombak, dan black hole di depan.
+- Perjalanan: kapal melaju perlahan ke black hole dan kamera menjaga jaraknya sambil mengikuti. Jejak ombak tertinggal di lintasan dan pantulan cermin di air dilembutkan oleh riak.
+- Kedalaman: kamera perspektif mengikuti dari belakang dengan pergantian sudut perlahan, parallax mouse yang diredam, air 3D, dan tiga lapisan partikel.
 - Tidak ada heading, navbar, caption, footer, kartu, toast, atau label visual. Ikon kecil tanpa tulisan hanya untuk kontrol scene.
 - Aria labels, fokus keyboard, pause, reduced motion, fallback gambar, dan audio opt-in tersedia.
 

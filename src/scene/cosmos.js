@@ -6,7 +6,7 @@ import {
   SEA_LEVEL,
   createVoyageRoute,
 } from "../models/sea-motion.js";
-import { sampleCameraMotion } from "./camera-motion.js";
+import { createFollowCameraRig } from "./follow-camera.js";
 import { createAccretionLighting } from "./accretion-lighting.js";
 import { createCosmicOcean } from "./cosmic-ocean.js";
 import { createShipWake } from "./ship-wake.js";
@@ -31,6 +31,7 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
       100,
     );
   camera.position.z = 15;
+  const cameraRig = createFollowCameraRig();
   scene.add(new THREE.HemisphereLight("#889dcf", "#100e2a", 0.8));
   const key = new THREE.DirectionalLight("#bac9eb", 1.2);
   key.position.set(-4, 5, 8);
@@ -182,7 +183,17 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
         vessel.updateSails(time);
         smoothPointer.lerp(pointer, 1 - Math.exp(-dt * 2.2));
       }
-      const cameraMotion = sampleCameraMotion(time, smoothPointer);
+      if (!paused)
+        rotation = THREE.MathUtils.damp(rotation, targetRotation, 5, dt);
+      const cameraMotion = cameraRig.update(
+        time,
+        dt,
+        route,
+        camera.aspect,
+        smoothPointer,
+        rotation,
+        paused,
+      );
       camera.position.set(
         cameraMotion.position.x,
         cameraMotion.position.y,
@@ -198,14 +209,9 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
         cameraMotion.background.y,
       );
       material.uniforms.uCameraScale.value = cameraMotion.background.scale;
-      rotation = THREE.MathUtils.damp(rotation, targetRotation, 5, dt);
       const sailing = sampleSailingMotion(time, baseX, camera.aspect, route);
       vessel.root.position.set(sailing.x, SEA_LEVEL + sailing.y, sailing.z);
-      vessel.root.rotation.set(
-        sailing.roll,
-        sailing.yaw + rotation,
-        sailing.pitch,
-      );
+      vessel.root.rotation.set(sailing.roll, sailing.yaw, sailing.pitch);
       ocean.update(
         time,
         sailing.x,
@@ -232,7 +238,11 @@ export function createCosmos(canvas, { reducedMotion = false } = {}) {
   }
   function move(e) {
     if (dragging) {
-      targetRotation += (e.clientX - lastX) * 0.009;
+      targetRotation = THREE.MathUtils.clamp(
+        targetRotation + (e.clientX - lastX) * 0.004,
+        -0.28,
+        0.28,
+      );
       lastX = e.clientX;
     } else if (e.pointerType !== "touch") {
       const rect = canvas.getBoundingClientRect();

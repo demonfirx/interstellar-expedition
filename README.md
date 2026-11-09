@@ -25,7 +25,7 @@ src/
   models/sailing-vessel.js       Model kapal, kabin, layar, dan tali rigging
   models/sea-motion.js           Gelombang serta gerak mengapung kapal
   scene/cosmos.js                Scene, pencahayaan, partikel, kamera
-  scene/camera-motion.js         Lintasan kamera dan kedalaman parallax
+  scene/follow-camera.js        Kamera mengikuti kapal dari belakang
   scene/accretion-lighting.js    Pantulan lingkungan dan cahaya black hole
   scene/cosmic-ocean.js          Air, pantulan, dan riak di belakang kapal
   scene/ship-wake.js             Jejak ombak berdasarkan riwayat jalur kapal
@@ -48,9 +48,9 @@ docs/
 
 ## Kontrol
 
-- Seret: putar kapal.
-- Gerakkan mouse: parallax lembut dengan respons yang diredam. Kamera juga bergerak pelan saat tidak ada input; bintang jauh, lapisan tengah, dan debu depan menempati kedalaman berbeda.
-- **M**: suara; **R**: reset rotasi; **Spasi**: jeda/lanjutkan.
+- Seret: geser sudut kamera dalam batas sudut belakang kapal.
+- Gerakkan mouse: parallax lembut dengan respons yang diredam. Kamera mengikuti perjalanan dari belakang agak menyamping, dengan posisi dan titik pandang yang dihaluskan terpisah; bintang jauh, lapisan tengah, dan debu depan menempati kedalaman berbeda.
+- **M**: suara; **R**: reset sudut kamera; **Spasi**: jeda/lanjutkan.
 - Ikon kecil kanan bawah: jeda, suara, dan layar penuh. Kontrol muncul saat pointer masuk atau menerima fokus keyboard.
 - Preferensi reduced motion dihormati. Suara hanya mulai setelah interaksi.
 
