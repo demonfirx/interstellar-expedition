@@ -12,7 +12,10 @@ import { createCosmicOcean } from "./cosmic-ocean.js";
 import { createShipWake } from "./ship-wake.js";
 import { sampleApproach } from "../models/approach.js";
 
-export function createCosmos(canvas, { reducedMotion = false,initialTime=0 } = {}) {
+export function createCosmos(
+  canvas,
+  { reducedMotion = false, initialTime = 0, onAtmosphere = () => {} } = {},
+) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
@@ -143,7 +146,9 @@ export function createCosmos(canvas, { reducedMotion = false,initialTime=0 } = {
   let width = 1,
     height = 1,
     mobile = false,
-    time = Number.isFinite(initialTime)?Math.max(0,Math.min(900,initialTime)):0,
+    time = Number.isFinite(initialTime)
+      ? Math.max(0, Math.min(900, initialTime))
+      : 0,
     last = performance.now(),
     paused = reducedMotion,
     active = !document.hidden,
@@ -244,6 +249,7 @@ export function createCosmos(canvas, { reducedMotion = false,initialTime=0 } = {
       material.uniforms.uProximity.value = approachState.envelope;
       material.uniforms.uGlowGain.value = approachState.glowGain;
       accretionLighting.update(time, camera.aspect, approachState);
+      onAtmosphere(time, approachState);
       farStars.rotation.z = time * 0.00035;
       middleStars.rotation.z = time * 0.0007;
       nearStars.rotation.z = time * 0.001;

@@ -33,14 +33,17 @@ const motion = document.querySelector("#motion"),
 const media = matchMedia("(prefers-reduced-motion: reduce)");
 const quotes = createQuotePlayground(
   document.querySelector(".quote-playground"),
-  { reducedMotion: media.matches },
+  { reducedMotion: media.matches, onAutoPlayChange: refreshIcons },
 );
 let paused = media.matches,
   scene;
 try {
   scene = createCosmos(document.querySelector("#space"), {
     reducedMotion: paused,
-    initialTime:import.meta.env.DEV?Number(new URLSearchParams(location.search).get('sceneTime')||0):0,
+    initialTime: import.meta.env.DEV
+      ? Number(new URLSearchParams(location.search).get("sceneTime") || 0)
+      : 0,
+    onAtmosphere: (time, approach) => quotes.updateAtmosphere(time, approach),
   });
 } catch (error) {
   console.error("3D scene unavailable:", error);

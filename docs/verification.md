@@ -1,8 +1,9 @@
 # Verification
 
-- Delapan belas tes Node lulus: validitas geometri/normal kapal, kontak dengan gelombang, batas kecepatan, perjalanan dan haluan, kontinuitas wake, kamera/parallax, aset versi terdahulu, posisi dan framing kamera belakang, pembekuan pose saat jeda, pembesaran black hole yang monoton dan terbatas, kontinuitas fase ombak, serta pegas quote yang konsisten pada 30 dan 120 Hz.
+- Dua puluh satu tes Node lulus: validitas geometri/normal kapal, kontak dengan gelombang, batas kecepatan, perjalanan dan haluan, kontinuitas wake, kamera/parallax, aset versi terdahulu, posisi dan framing kamera belakang, pembekuan pose saat jeda, pembesaran black hole yang monoton dan terbatas, kontinuitas fase ombak, pegas quote yang konsisten pada 30 dan 120 Hz, serta clock baca otomatis, penundaan interaksi, dan perlindungan dari lompatan waktu.
 - Scene diperiksa pada desktop dan 390 × 844, termasuk preview development detik 600. Tidak ada overflow. Kapal dan tiang tetap utuh, pantulan terlihat, dan quote tidak menutupi kapal. Quote merupakan teks visual yang secara eksplisit diminta pengguna setelah arahan tanpa tulisan.
 - Quote diuji melalui Next, drag kata, Scatter, Reset, dan Panah Kanan. Kalimat berganti dengan benar, transform kata bergerak saat drag/scatter, dan reset mengembalikan posisi. Tombol jeda terverifikasi mengubah state menjadi Lanjutkan animasi.
+- Pergantian otomatis teramati tanpa klik Next, dengan live region otomatis dalam mode off. Tombol jeda auto berubah menjadi Resume automatic quotes. Drift dan parameter cahaya berubah selama playback dan tetap identik setelah jeda scene. Drag mempertahankan transform kata terpisah dari drift parent. Enter saat transisi mengembalikan opacity ke 1 dan memainkan kata; Escape dan Panah Kanan tetap bekerja. Desktop serta 390 × 844 diperiksa ulang untuk keterbacaan dan overflow.
 - Shader laut, halo cincin, dan pantulan kabin berhasil dikompilasi. Tidak ada error atau warning console pada preview terakhir.
 - Jeda dan lanjutkan terverifikasi melalui state kontrol. Semua gerak memakai waktu scene yang sama, termasuk kamera, gelombang, kapal, layar, dan pantulan.
 - Model kapal diekspor sebagai GLB statis sekitar 169 KB tanpa peringatan normal geometri. Gerakan layar dan gelombang ditangani runtime.
@@ -10,6 +11,6 @@
 - Glow lokal memiliki gain kecil dan pengurang berdasarkan luminance untuk menjaga inti cincin tetap terbaca. Pusat event horizon tidak diberi glow.
 - Pantulan kapal asli, termasuk lambung, kabin, dan layar, terlihat pada air melalui render kamera cermin. Capture dibatasi hanya pada layer kapal dengan render target 512 × 512; ripple dan fade diproses shader air. Wake berupa ribbon kecil yang mengikuti posisi buritan sebelumnya.
 - Kamera belakang diuji pada perjalanan sepuluh menit secara numerik: tetap di belakang kapal, jarak terjaga, dan tidak ada loncatan posisi. Kapal dan puncak tiang tetap berada dalam frame pada aspek desktop dan 390 × 844.
-- Bukti tampilan akhir: `outputs/interstellar-approach-quotes-preview.png`. Parameter `sceneTime` hanya tersedia dalam mode development dan tidak memberi kontrol waktu pada produksi.
+- Bukti tampilan akhir: `outputs/interstellar-floating-quotes-preview.png`. Parameter `sceneTime` hanya tersedia dalam mode development dan tidak memberi kontrol waktu pada produksi.
 
 Fullscreen native bergantung pada browser dan bisa tidak tersedia di panel embedded. Reduced motion mengikuti preferensi perangkat; emulasi preferensi otomatis tidak tersedia pada kontrol browser yang digunakan. Scene ini merupakan interpretasi artistik, bukan simulasi astrofisika.

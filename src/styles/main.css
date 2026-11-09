@@ -37,24 +37,46 @@
   inset: -25px -40px;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, #02050d66, #02050d26 35%, transparent 70%);
+  background: radial-gradient(
+    ellipse at center,
+    #02050d66,
+    #02050d26 35%,
+    transparent 70%
+  );
 }
 .quote-words {
+  min-height: 2.8em;
   font-size: clamp(23px, 2.7vw, 36px);
   font-weight: 400;
   line-height: 1.4;
   letter-spacing: -0.025em;
   text-wrap: balance;
   outline: none;
-  text-shadow:
-    0 2px 18px #01030ee6,
-    0 1px 2px #01030e;
+}
+.quote-drift {
+  filter: drop-shadow(0 1px 2px #01030e) drop-shadow(0 2px 8px #01030eb3);
 }
 .quote-words:focus-visible {
   outline: 1px solid #b9c9f780;
   outline-offset: 10px;
 }
 .quote-word {
+  color: transparent;
+  background: linear-gradient(
+    112deg,
+    #d9e1ef 10%,
+    #c0cffa 35%,
+    #fff0db 48%,
+    #e3e7fa 59%,
+    #c7cced 78%
+  );
+  background-size: 280% 100%;
+  background-position: var(--quote-light-position, 50%) 50%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow:
+    0 0 15px rgb(142 162 248 / var(--quote-blue-glow, 0.16)),
+    2px 1px 9px rgb(248 210 187 / var(--quote-warm-glow, 0.07));
   position: relative;
   display: inline-block;
   cursor: grab;
@@ -66,6 +88,7 @@
 .quote-word:hover,
 .quote-word.is-dragging {
   color: #fff4d9;
+  background-image: none;
 }
 .quote-word.is-dragging {
   cursor: grabbing;
@@ -101,6 +124,20 @@
 .quote-controls button:focus-visible {
   outline: 1px solid #c7d5ff;
   outline-offset: 3px;
+}
+.quote-controls button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (forced-colors: active) {
+  .quote-drift {
+    filter: none;
+  }
+  .quote-word {
+    color: CanvasText;
+    background: none;
+    text-shadow: none;
+  }
 }
 .quote-controls svg {
   width: 14px;
@@ -213,6 +250,9 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .quote-drift {
+    transform: none !important;
+  }
   * {
     transition: none !important;
   }

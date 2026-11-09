@@ -36,6 +36,7 @@ src/
   ui/ambient.js                 Sintesis suara ambient
   ui/quotes.js                  Quote original, drag, sebar, dan kontrol keyboard
   ui/quote-physics.js            Pegas kata yang konsisten pada berbagai frame rate
+  ui/quote-cycle.js              Waktu baca dan penundaan pergantian otomatis
 public/
   assets/gargantua-reference.webp
   models/lumen-sailer.glb        Model kapal statis siap diimpor ke editor 3D
@@ -51,7 +52,8 @@ docs/
 
 ## Kontrol
 
-- Quote: seret kata lalu lepaskan; kata kembali halus. Tiga ikon di bawah quote mengganti quote, menyebar kata, dan mengembalikan posisinya.
+- Quote: seret kata lalu lepaskan; kata kembali halus. Ikon di bawah quote mengganti quote, menyebar kata, mengembalikan posisi, dan menjeda pergantian otomatis.
+- Quote melayang pelan dengan pantulan biru-ungu serta kilau hangat. Pergantian otomatis setiap 16 detik memakai fade keluar/masuk. Saat hover, fokus keyboard, drag, atau kata masih bergerak, waktu baca dimulai ulang. Jeda scene membekukan gerak, cahaya, dan transisi; reduced motion menonaktifkan gerak dekoratif dan auto-ganti.
 - Saat quote menerima fokus: **Enter/Spasi** menyebar kata, **Escape** merapikan, **Panah Kanan** mengganti quote. Shortcut ini tidak menggerakkan kamera.
 - Seret: geser sudut kamera dalam batas sudut belakang kapal.
 - Gerakkan mouse: parallax lembut dengan respons yang diredam. Kamera mengikuti perjalanan dari belakang agak menyamping, dengan posisi dan titik pandang yang dihaluskan terpisah; bintang jauh, lapisan tengah, dan debu depan menempati kedalaman berbeda.

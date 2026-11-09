@@ -20,6 +20,7 @@
         tabindex="0"
       ></canvas>
       <section
+        lang="en"
         class="quote-playground"
         aria-label="Interactive inspirational quotes"
       >
@@ -31,15 +32,19 @@
         ></p>
         <p class="sr-only" id="quote-help">
           Drag a word and release it. Press Enter to scatter the words, Escape
-          to reset, or Right Arrow for the next quote.
+          to reset, or Right Arrow for the next quote. Quotes change
+          automatically every 16 seconds and wait while you interact. Use the
+          pause control to stop automatic changes.
         </p>
-        <div
-          class="quote-words"
-          role="group"
-          tabindex="0"
-          aria-label="Play with the quote"
-          aria-describedby="quote-readable quote-help"
-        ></div>
+        <div class="quote-drift">
+          <div
+            class="quote-words"
+            role="group"
+            tabindex="0"
+            aria-label="Play with the quote"
+            aria-describedby="quote-readable quote-help"
+          ></div>
+        </div>
         <div class="quote-controls">
           <button
             data-quote-action="next"
@@ -61,6 +66,14 @@
             title="Reset words"
           >
             <i data-lucide="rotate-ccw"></i>
+          </button>
+          <button
+            data-quote-action="auto"
+            aria-label="Pause automatic quotes"
+            aria-pressed="true"
+            title="Pause automatic quotes"
+          >
+            <i data-lucide="pause"></i>
           </button>
         </div>
       </section>

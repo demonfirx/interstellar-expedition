@@ -10,7 +10,7 @@ Satu scene penuh dengan quote Inggris original sebagai satu-satunya teks terliha
 - Perjalanan: kapal melaju perlahan ke black hole dan kamera menjaga jaraknya sambil mengikuti. Jejak ombak tertinggal di lintasan dan pantulan cermin di air dilembutkan oleh riak.
 - Kedekatan: zoom cincin berpusat pada event horizon, bertambah tanpa reset hingga maksimum 1,55× portrait dan 1,85× desktop lebar. Cahaya dan ombak meningkat dalam batas kecil, dengan fase gerak kontinu. Pusat gelap dipertahankan.
 - Kedalaman: kamera perspektif mengikuti dari belakang dengan pergantian sudut perlahan, parallax mouse yang diredam, air 3D, dan tiga lapisan partikel.
-- Quote: Manrope, putih redup, kiri atas, tanpa kartu. Kata dapat diseret lalu kembali dengan pegas yang teredam; pergantian quote memakai reveal singkat. Ikon untuk next, scatter, dan reset. Tidak ada heading, navbar, footer, toast, atau label kontrol visual.
+- Quote: Manrope, kiri atas, tanpa kartu. Grup kata melayang dengan amplitudo 3 px horizontal, 6 px vertikal, dan rotasi maksimum 0,25 derajat. Pantulan gradasi biru-ungu dan putih hangat bergerak pelan, dengan glow kecil yang meningkat sesuai kedekatan kapal. Kata dapat diseret lalu kembali dengan pegas teredam. Pergantian otomatis 16 detik memakai fade keluar 350 ms dan masuk 700 ms. Ikon untuk next, scatter, reset, dan jeda auto. Tidak ada heading, navbar, footer, toast, atau label kontrol visual.
 - Aria labels, fokus keyboard, pause, reduced motion, fallback gambar, dan audio opt-in tersedia.
 
 Versi landing sebelumnya disimpan di `docs/archive/` dan tidak masuk build.
