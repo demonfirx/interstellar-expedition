@@ -1,9 +1,7 @@
-# Interstellar expedition
+# Scene
 
-Build a cinematic, interactive space website inspired by the supplied black-hole reference. Original voxel astronaut model, real skeletal rig, floating and waving animation. Indonesian supporting copy; English expedition typography. No accounts or unrelated backend features.
+Canvas WebGL memenuhi viewport. Texture dari referensi diproyeksikan dengan rasio yang dipertahankan dan crop adaptif. Shader memisahkan empat pita radial, mengalirkan masing-masing texture dengan kecepatan berbeda, dan memberikan distorsi lateral pada cakram tengah. Pusat event horizon tidak terkena rotasi texture.
 
-Use a static Vite + Three.js site. The hero combines the supplied reference with animated accretion-ring effects, particles, and a live 3D astronaut. Provide orbit dragging, wave interaction, motion toggle, ambient sound, immersive mode, keyboard controls, destination selection, mission information, and downloadable rigged GLB. Respect reduced motion and provide a WebGL fallback.
+Astronaut tetap berupa model voxel 3D dengan skeleton 16 tulang dan dua klip animasi. Warna suit, visor, dan pencahayaan menyesuaikan biru-ungu black hole. Tidak ada konten teks visual.
 
-Visual system: almost-black/navy background, warm white type, acid-lime accents, technical monospaced labels, large editorial headings, thin dividers. Responsive for desktop and mobile. Animations pause offscreen and in background tabs.
-
-Implementation: create original rigid-weighted voxel geometry with named skeleton, animate with reusable clips, build all sections and controls, verify model/animation invariants, production build, desktop/mobile browser QA, package and publish owner-private if service succeeds.
+Kontrol hanya berupa tiga ikon kecil: jeda, suara, layar penuh. Interaksi klik dan seret tetap berfungsi pada canvas. Mode layar penuh bergantung pada dukungan browser; scene sudah memenuhi panel sejak awal.

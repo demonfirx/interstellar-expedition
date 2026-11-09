@@ -49,12 +49,11 @@ export function createAstronaut() {
     g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(weights, 4));
     pieces.push(g);
   }
-  const white = "#e8e9df",
-    light = "#f8f6e9",
-    shadow = "#a9b9c1",
-    dark = "#344657",
-    joint = "#5d6970",
-    orange = "#ef8755";
+  const white = "#bbc8df",
+    light = "#dce3f3",
+    shadow = "#6e80a5",
+    dark = "#25304b",
+    orange = "#9694e0";
   block("spine_01", 0, 0, 0, 1.27, 1.5, 0.83, white);
   block("spine_01", 0, 0.57, 0, 1.5, 0.38, 0.88, light);
   block("spine_01", 0, -0.62, 0.02, 1.34, 0.25, 0.94, shadow);
@@ -87,12 +86,12 @@ export function createAstronaut() {
   block("head", 0, 2.31, 0, 1.33, 0.2, 1.14, light);
   block("head", 0, 1.0, 0, 1.35, 0.16, 1.12, shadow);
   block("head", 0, 1.62, 0.7, 1.42, 1.04, 0.17, dark);
-  block("head", 0, 1.63, 0.805, 1.22, 0.84, 0.1, "#a3692b");
+  block("head", 0, 1.63, 0.805, 1.22, 0.84, 0.1, "#28355c");
   const visor = [
-    ["#e4bf70", "#f9d58b", "#c99a4b", "#a9702a", "#9a5b22", "#875024"],
-    ["#f3dca0", "#e7bd69", "#c58e35", "#ae7628", "#a66e26", "#8c5424"],
-    ["#deb66a", "#c99442", "#bd8738", "#b58032", "#ac7129", "#a56827"],
-    ["#a97636", "#b88841", "#b9883b", "#be8d40", "#b78339", "#98602a"],
+    ["#c4d9ff", "#cbd6ff", "#819ee3", "#5f77bf", "#4a5691", "#373c70"],
+    ["#afc9fb", "#8ca9ef", "#627bc4", "#515d9e", "#4b4f8a", "#35375e"],
+    ["#7c92d4", "#6878ba", "#5b63a7", "#615b9c", "#5d508a", "#423860"],
+    ["#414b7d", "#525c91", "#625c99", "#7866a8", "#6b538e", "#443557"],
   ];
   for (let y = 0; y < 4; y++)
     for (let x = 0; x < 6; x++)
@@ -106,9 +105,9 @@ export function createAstronaut() {
         0.04,
         visor[y][x],
       );
-  block("head", -0.34, 1.99, 0.9, 0.33, 0.09, 0.02, "#fff1c9");
-  block("head", -0.47, 1.83, 0.9, 0.09, 0.23, 0.02, "#f8e1a1");
-  block("head", 0.4, 1.42, 0.9, 0.19, 0.09, 0.02, "#6b4828");
+  block("head", -0.34, 1.99, 0.9, 0.33, 0.09, 0.02, "#e5edff");
+  block("head", -0.47, 1.83, 0.9, 0.09, 0.23, 0.02, "#c9daff");
+  block("head", 0.4, 1.42, 0.9, 0.19, 0.09, 0.02, "#2b2a50");
   for (const sign of [-1, 1]) {
     block("head", sign * 0.9, 1.6, 0, 0.16, 0.6, 0.65, shadow);
     block("head", sign * 0.99, 1.61, 0.08, 0.06, 0.32, 0.31, light);

@@ -31,9 +31,9 @@
     "avoid": []
   },
   "decisions": [
-    "Cinematic black hole reference with original rigged voxel astronaut",
-    "Lime actions, Manrope display and Roboto Mono telemetry",
-    "Responsive mission-control composition with reduced motion"
+    "Fullscreen artwork without any visible text",
+    "Source image animated in four radial layers plus equatorial disk flow",
+    "Blue-violet voxel astronaut with 16-bone rig and looping wave"
   ],
   "evidence": [],
   "generatedAt": "2026-11-09T01:51:38.534Z"

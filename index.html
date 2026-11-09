@@ -3,301 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#080a0d" />
+    <meta name="theme-color" content="#04040c" />
     <meta
       name="description"
-      content="Sebuah perjalanan kecil melampaui yang kita kenal. Jelajahi Gargantua bersama ASTRO, astronaut voxel 3D interaktif."
+      content="Black hole berlapis yang bergerak, dan astronaut pixel 3D yang melayang di antara cahaya Interstellar."
     />
-    <title>INTERSTELLAR — A little further.</title>
+    <title>Interstellar</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Lewati ke konten</a>
-    <header class="header">
-      <a class="brand" href="#home" aria-label="Interstellar beranda"
-        ><span class="brand-icon">✳</span> INTERSTELLAR<span class="brand-reg"
-          >®</span
-        ></a
-      >
-      <nav aria-label="Navigasi utama" id="navigation">
-        <a href="#home" class="active">The experience</a
-        ><a href="#destinations">Destinations</a
-        ><a href="#crew">Meet your explorer</a>
-      </nav>
-      <a class="nav-cta" href="#destinations"
-        >Explore the unknown <i data-lucide="arrow-up-right"></i
-      ></a>
-      <button
-        class="menu-toggle icon-button"
-        aria-label="Buka navigasi"
-        aria-expanded="false"
-        aria-controls="navigation"
-      >
-        <i data-lucide="menu"></i>
-      </button>
-    </header>
-    <main id="main">
-      <section
-        class="hero"
-        id="home"
-        aria-label="Pengalaman luar angkasa interaktif"
-      >
-        <div class="space-background" aria-hidden="true"></div>
-        <div class="destination-backdrop" aria-hidden="true"></div>
-        <div class="space-wash" aria-hidden="true"></div>
-        <canvas
-          id="space"
-          aria-label="Astronaut 3D pixel melayang dan melambaikan tangan. Seret untuk memutar astronaut."
-          role="img"
-        ></canvas>
-        <div class="grain" aria-hidden="true"></div>
-        <div class="hero-topline mono">
-          <span><span class="live-dot"></span> SIGNAL FROM THE OTHER SIDE</span
-          ><span>EST. 2067 / EXPEDITION 001</span>
-        </div>
-        <div class="hero-copy">
-          <div class="eyebrow mono">
-            <span class="tiny-cross">+</span> FOR THE ENDLESSLY CURIOUS
-          </div>
-          <h1>A little<br /><span>further.</span><sup>↗</sup></h1>
-          <p>
-            Di luar yang kita kenal, ada semesta<br class="desktop-break" />
-            yang menunggu untuk ditemukan.
-          </p>
-          <div class="hero-actions">
-            <button class="primary-button" id="begin">
-              Begin the journey <i data-lucide="arrow-up-right"></i></button
-            ><button class="text-button" id="wave">
-              <span class="wave-icon">✋</span> Say hello to Astro
-            </button>
-          </div>
-          <div class="hero-footnote mono">
-            <span class="little-orbit">◎</span> A SMALL EXPLORER. AN INFINITE
-            UNIVERSE.
-          </div>
-        </div>
-        <div class="coordinate coord-one mono">
-          <span class="crosshair">+</span> 23° 26′ 13.4″ N<br /><span
-            class="muted"
-            >GARGANTUA SYSTEM</span
-          >
-        </div>
-        <button
-          id="astro-label"
-          class="astro-label mono"
-          aria-label="Sapa Astro"
-        >
-          <span class="live-dot"></span> ASTRO_01 <span>↗</span
-          ><small>YOUR COSMIC COMPANION</small>
+    <main class="universe" aria-label="Pemandangan Interstellar interaktif">
+      <canvas
+        id="space"
+        role="img"
+        aria-label="Lapisan cahaya black hole mengalir dan berputar. Astronaut pixel biru melayang sambil melambaikan tangan. Seret untuk memutar astronaut, klik untuk dadah."
+        tabindex="0"
+      ></canvas>
+      <div class="scene-controls" aria-label="Kontrol pemandangan">
+        <button id="motion" aria-label="Jeda animasi" aria-pressed="false">
+          <i data-lucide="pause"></i>
         </button>
-        <div class="orbit-note mono">
-          <span class="crosshair">+</span>
-          <div>GARGANTUA<small>BEYOND THE EVENT HORIZON</small></div>
-        </div>
-        <div class="hero-bottom">
-          <a href="#destinations" class="scroll-hint mono"
-            ><span class="scroll-track"><span></span></span> SCROLL TO
-            DISCOVER</a
-          >
-          <div class="scene-controls">
-            <span class="drag-hint mono"
-              ><i data-lucide="move"></i> DRAG TO ORBIT</span
-            ><button
-              class="icon-button"
-              id="motion"
-              aria-label="Jeda animasi"
-              aria-pressed="false"
-            >
-              <i data-lucide="pause"></i></button
-            ><button
-              id="sound"
-              class="sound-button mono"
-              aria-label="Aktifkan suara ambient"
-              aria-pressed="false"
-            >
-              <span class="sound-bars"><b></b><b></b><b></b><b></b></span> SOUND
-              <span id="sound-state">OFF</span></button
-            ><button
-              class="icon-button"
-              id="immersive"
-              aria-label="Buka tampilan imersif"
-              aria-pressed="false"
-            >
-              <i data-lucide="maximize"></i>
-            </button>
-          </div>
-        </div>
-        <div class="webgl-message" hidden>
-          Mode 3D tidak tersedia di browser ini. Pemandangan kosmik tetap bisa
-          dijelajahi.
-        </div>
-        <div class="immersive-tip mono">
-          DRAG TO ORBIT · W TO WAVE · ESC TO RETURN
-        </div>
-      </section>
-      <div class="telemetry mono">
-        <span><span class="live-dot"></span> ALL SYSTEMS NOMINAL</span
-        ><span>MISSION <b>ENDURANCE</b></span
-        ><span>LOCATION <b id="location-readout">GARGANTUA</b></span
-        ><span>ELAPSED <b id="elapsed">00:00:00</b></span
-        ><span class="telemetry-end"
-          >WE'RE STILL EXPLORING <i data-lucide="asterisk"></i
-        ></span>
+        <button
+          id="sound"
+          aria-label="Aktifkan suara ambient"
+          aria-pressed="false"
+        >
+          <i data-lucide="volume-x"></i>
+        </button>
+        <button id="fullscreen" aria-label="Layar penuh" aria-pressed="false">
+          <i data-lucide="maximize"></i>
+        </button>
       </div>
-      <section class="destinations content-section" id="destinations">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow mono">01 / THE GREAT UNKNOWN</p>
-            <h2>
-              Everywhere is<br />a new beginning<span class="lime">.</span>
-            </h2>
-          </div>
-          <p>
-            Ikuti rasa penasaranmu.<br />Pilih koordinat, temukan cerita<br />di
-            sisi lain semesta.
-          </p>
-        </div>
-        <div class="destination-grid">
-          <button
-            class="destination selected"
-            data-destination="gargantua"
-            aria-pressed="true"
-          >
-            <div class="destination-art black-hole-art">
-              <span class="mini-hole"></span><span class="art-grid"></span
-              ><span class="card-number mono">DESTINATION_01</span
-              ><span class="card-arrow">↗</span
-              ><span class="art-tag mono"
-                >CURRENT LOCATION <span class="live-dot"></span
-              ></span>
-            </div>
-            <div class="destination-caption">
-              <div>
-                <h3>Gargantua</h3>
-                <p>Where light takes the long way home.</p>
-              </div>
-              <span class="mono">BLACK HOLE</span>
-            </div>
-          </button>
-          <button
-            class="destination"
-            data-destination="miller"
-            aria-pressed="false"
-          >
-            <div class="destination-art water-art">
-              <span class="planet water-planet"></span
-              ><span class="art-grid"></span
-              ><span class="card-number mono">DESTINATION_02</span
-              ><span class="card-arrow">↗</span
-              ><span class="art-tag mono">AN OCEAN WITHOUT AN END</span>
-            </div>
-            <div class="destination-caption">
-              <div>
-                <h3>Miller's planet</h3>
-                <p>A world that moves to its own time.</p>
-              </div>
-              <span class="mono">OCEAN WORLD</span>
-            </div>
-          </button>
-          <button
-            class="destination"
-            data-destination="edmunds"
-            aria-pressed="false"
-          >
-            <div class="destination-art desert-art">
-              <span class="planet desert-planet"></span
-              ><span class="art-grid"></span
-              ><span class="card-number mono">DESTINATION_03</span
-              ><span class="card-arrow">↗</span
-              ><span class="art-tag mono">SOMEWHERE TO BEGIN AGAIN</span>
-            </div>
-            <div class="destination-caption">
-              <div>
-                <h3>Edmunds' planet</h3>
-                <p>Maybe home is still ahead of us.</p>
-              </div>
-              <span class="mono">ROCKY WORLD</span>
-            </div>
-          </button>
-        </div>
-        <div class="destination-detail" aria-live="polite">
-          <span class="detail-symbol">↳</span>
-          <p id="destination-description">
-            Cahaya membelok, waktu terasa asing. Dekati cincin Gargantua bersama
-            Astro dan lihat semesta dari sudut yang berbeda.
-          </p>
-          <button class="text-button" id="visit-destination">
-            Set course <i data-lucide="arrow-up-right"></i>
-          </button>
-        </div>
-      </section>
-      <section class="crew content-section" id="crew">
-        <div class="crew-visual">
-          <div class="crew-grid"></div>
-          <span class="mono crew-corner">CREW DOSSIER / 001</span
-          ><canvas
-            id="crew-canvas"
-            aria-label="Pratinjau astronaut voxel Astro"
-            role="img"
-          ></canvas
-          ><span class="crew-bottom mono"
-            ><span class="live-dot"></span> BUILT FOR A LITTLE WONDER</span
-          >
-        </div>
-        <div class="crew-copy">
-          <p class="eyebrow mono">02 / A FRIEND IN THE VOID</p>
-          <h2>
-            Small astronaut.<br />Big curiosity<span class="lime">.</span>
-          </h2>
-          <p>
-            Kenalan dengan Astro. Penjelajah kecil dengan rasa penasaran yang
-            nggak ada habisnya. Sedikit melayang, sesekali dadah, selalu siap
-            menemani perjalananmu.
-          </p>
-          <dl>
-            <div>
-              <dt class="mono">CALL SIGN</dt>
-              <dd>ASTRO_01</dd>
-            </div>
-            <div>
-              <dt class="mono">SPECIAL SKILL</dt>
-              <dd>Making space feel like home</dd>
-            </div>
-            <div>
-              <dt class="mono">CURRENT MOOD</dt>
-              <dd><span class="live-dot"></span> Wonderfully weightless</dd>
-            </div>
-          </dl>
-          <div class="crew-actions">
-            <button id="crew-wave" class="primary-button">
-              Send a little wave <span>✋</span></button
-            ><button id="download-model" class="text-button">
-              Get the 3D model <i data-lucide="download"></i>
-            </button>
-          </div>
-        </div>
-      </section>
-      <section class="closing content-section">
-        <p class="eyebrow mono">THERE'S ALWAYS SOMETHING BEYOND.</p>
-        <h2>Stay curious.<br /><span>Keep looking up.</span><i>✳</i></h2>
-        <a href="#home" class="text-button"
-          >One more look at the universe <i data-lucide="arrow-up-right"></i
-        ></a>
-      </section>
     </main>
-    <footer>
-      <a class="brand" href="#home"
-        ><span class="brand-icon">✳</span> INTERSTELLAR<span class="brand-reg"
-          >®</span
-        ></a
-      ><span class="mono">AN EXPERIMENT IN CURIOSITY. © 2026</span
-      ><a href="#home" class="mono">BACK TO THE STARS ↑</a
-      ><small
-        >Pengalaman fiksi interaktif terinspirasi Interstellar. Bukan simulasi
-        astrofisika.</small
-      >
-    </footer>
-    <div class="toast" role="status" aria-live="polite"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

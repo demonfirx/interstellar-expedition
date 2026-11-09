@@ -1,15 +1,9 @@
 # Product
 
-Pengalaman web interaktif untuk menikmati pemandangan seperti referensi black hole Interstellar, dengan astronaut 3D bergaya kartun pixel yang dimodelkan, dirig, melayang, dan melambaikan tangan. Pengguna meminta struktur folder rapi dan penggunaan skill yang relevan.
+Website artistik bertema gambar black hole Interstellar yang diberikan pengguna. Astronaut 3D kartun pixel dibuat dan dirig di proyek ini, lalu dianimasikan melayang dan melambaikan tangan.
 
-## Platform
+Permintaan terbaru: tampilan bersih tanpa tulisan; gambar sumber harus bergerak pada lapisan cahaya yang mengelilingi black hole; astronaut harus menyatu dengan tema biru-ungu gambar. Folder harus rapi. Source landing awal diarsipkan untuk kemungkinan penggunaan berikutnya.
 
-Web responsif, desktop dan mobile. WebGL untuk scene 3D; latar tetap tersedia jika WebGL gagal. Navigasi keyboard dan reduced motion tersedia.
+## Platform dan stack
 
-## Stack
-
-Pilihan implementasi oleh pembuat: JavaScript statis, Vite, Three.js, Lucide. Tidak ada autentikasi, backend, atau data personal. File model GLB tersedia untuk diunduh dan diedit.
-
-## Content
-
-Astronaut dan cerita ekspedisi merupakan fiksi. Gambar referensi diberikan pengguna. Bahasa pendukung Indonesia dengan label ekspedisi Inggris. Klaim ilmiah tidak menjadi tujuan pengalaman ini.
+Web responsif, JavaScript, Vite, Three.js, Lucide. Tidak ada akun atau backend aplikasi. WebGL untuk rendering; CSS menyimpan gambar fallback. Kontrol keyboard dan reduced motion tersedia.

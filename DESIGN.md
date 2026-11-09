@@ -1,12 +1,12 @@
 # Visual system
 
-Cinematic mission-control framing around the supplied blue-violet black hole. Warm off-white text, lime greeting/actions, and a cartoon voxel astronaut provide contrast against deep navy space.
+Satu scene penuh tanpa teks terlihat, mengikuti permintaan terbaru pengguna. Gambar black hole menjadi seluruh latar, dengan astronaut pixel yang kecil dalam skala ruang angkasa.
 
-- Background: `#090b0d`; surface: `#101215`; primary text: `#f0f0e9`; secondary: `#a0a4a9`; accent: `#ddf996`.
-- Display and body: self-hosted Manrope Variable. Measurements and telemetry: self-hosted Roboto Mono.
-- Desktop: wide header, left editorial title, live astronaut on right, two-column crew section. Mobile: title above scene, single-column destinations and crew.
-- Thin dividers, squared primary buttons, restrained borders. Scene interactions are the main motion; text stays readable.
-- Continuous motion: paired floating/waving clips, star drift, accretion shader, slow background motion. Pause and reduced motion stop continuous animation.
-- Accessible visible focus, skip link, semantic navigation, live status feedback, descriptive icon controls, mobile menu state.
+- Palet: hitam kebiruan, cahaya biru-ungu, sedikit pantulan hangat dari cakram sumber.
+- Astronaut: suit abu-abu kebiruan, visor pixel biru-ungu, aksen lavender, rim light dari arah black hole.
+- Empat lapisan radial dari gambar sumber bergerak independen. Cakram tengah memiliki aliran lateral; pusat gelap dipertahankan.
+- Desktop: astronaut di sisi kiri. Mobile: astronaut lebih rendah, tetap ada ruang untuk cincin black hole.
+- Tidak ada heading, navbar, caption, footer, kartu, toast, atau label visual. Ikon kecil tanpa tulisan hanya untuk kontrol scene.
+- Aria labels, fokus keyboard, pause, reduced motion, fallback gambar, dan audio opt-in tersedia.
 
-No external font or audio requests at runtime. Three.js and Lucide are bundled independently. Image converted to WebP; rigged GLB is about 259 KB.
+Versi landing sebelumnya disimpan di `docs/archive/` dan tidak masuk build.

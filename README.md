@@ -1,6 +1,6 @@
 # Interstellar
 
-Website ruang angkasa interaktif dengan astronaut voxel 3D original. Model memiliki rig 16 tulang, animasi melayang, dan gerakan dadah. Menggunakan Vite, Three.js, dan ikon Lucide.
+Pemandangan layar penuh tanpa tulisan. Gambar referensi black hole dianimasikan menjadi empat lapisan cahaya yang bergerak dengan kecepatan berbeda, disertai aliran cakram tengah, bintang, dan astronaut voxel biru-ungu yang melayang sambil dadah.
 
 ## Menjalankan
 
@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Buka alamat yang dicetak terminal. Port default: **5174**.
+Preview: `http://127.0.0.1:5174/`.
 
 ```powershell
 npm test
@@ -21,30 +21,33 @@ npm run preview
 
 ```text
 src/
-  main.js                 Interaksi, navigasi, dan state halaman
-  models/astronaut.js      Model voxel, skeleton, dan klip animasi
-  scene/cosmos.js          Renderer, pencahayaan, shader, dan kamera
-  styles/main.css         Token visual dan layout responsif
-  ui/ambient.js            Suara ambient dari Web Audio
+  main.js                       Kontrol ikon dan shortcut
+  models/astronaut.js            Model voxel, skeleton, klip animasi
+  scene/cosmos.js                Scene, pencahayaan, partikel, kamera
+  scene/shaders/black-hole.js    Animasi lapisan gambar referensi
+  styles/main.css               Canvas penuh dan kontrol minimal
+  ui/ambient.js                 Sintesis suara ambient
 public/
-  assets/                  Referensi visual dan font lokal
-  models/astro-rigged.glb   Model siap diimpor ke Blender atau engine 3D
-scripts/
-  export-astronaut.mjs     Ekspor ulang model beserta rig dan animasi
-tests/
-  astronaut.test.js        Validasi skeleton, bobot, dan loop animasi
-docs/                      Desain, kontrol rig, dan asal aset
-index.html                 Struktur konten halaman
+  assets/gargantua-reference.webp
+  models/astro-rigged.glb        Model dengan rig 16 tulang dan 2 animasi
+scripts/export-astronaut.mjs     Ekspor ulang GLB
+tests/astronaut.test.js          Validasi rig, animasi, dan file GLB
+docs/
+  archive/                      Versi landing awal, disimpan untuk nanti
+  reference/                    Gambar original dari pengguna
+  licenses/                     Lisensi dependensi
+  rig.md                        Dokumentasi kontrol rig
+  assets.md                     Asal aset
 ```
 
 ## Kontrol
 
-- Seret astronaut untuk memutar kamera orbit.
-- **W**: dadah. **M**: suara ambient. **R**: reset kamera. **Esc**: keluar tampilan imersif.
-- Tombol jeda menghentikan gerak scene. Preferensi reduced motion perangkat dihormati.
-- Pilih destinasi lalu tekan **Set course** untuk mengganti pemandangan.
-- **Get the 3D model** mengunduh GLB dengan rig dan kedua animasinya.
+- Klik atau ketuk canvas: astronaut dadah.
+- Seret: putar astronaut.
+- **W**: dadah; **M**: suara; **R**: reset rotasi; **Spasi**: jeda/lanjutkan.
+- Ikon kecil kanan bawah: jeda, suara, dan layar penuh. Kontrol muncul saat pointer masuk atau menerima fokus keyboard.
+- Preferensi reduced motion dihormati. Suara hanya mulai setelah interaksi.
 
-Ekspor ulang setelah mengubah model: `node scripts/export-astronaut.mjs`.
+Ekspor ulang model: `node scripts/export-astronaut.mjs`.
 
-Pengalaman ini menggunakan latar fiksi terinspirasi Interstellar. Pemandangan dan nilai koordinat bersifat ilustratif.
+Shader menggerakkan piksel gambar sumber pada empat pita radial, bukan hanya menggeser seluruh gambar. Masker mempertahankan pusat gelap dan bentuk cakram tengah. Pengalaman artistik, bukan simulasi astrofisika.
