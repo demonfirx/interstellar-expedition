@@ -1,4 +1,4 @@
-/** Sparse drag dust curves toward the projected black hole when its word is released. */
+/** Sparse drag dust makes a small orbital curl, then drifts toward the black hole. */
 export function createQuoteDust(host, { reducedMotion = false } = {}) {
   const layer = document.createElement("div");
   layer.className = "quote-dust";
@@ -63,12 +63,29 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     const opacity = opacityAt(progress),
       scale = scaleAt(progress);
     const keyframes = [];
-    for (let i = 0; i <= 12; i++) {
-      const s = i / 12;
-      // Keep the existing position and tangent, then gradually bend toward the source.
+    for (let i = 0; i <= 24; i++) {
+      const s = i / 24;
+      // Preserve the incoming tangent. A small, tapered curl leads into the inward pull.
       const coast = s - s * s * 0.5;
-      const px = x + tangentX * coast + (dx / distance) * reach * s * s;
-      const py = y + tangentY * coast + (dy / distance) * reach * s * s;
+      const orbitTime = Math.min(1, s / 0.72);
+      const angle =
+        orbitTime * orbitTime * (3 - 2 * orbitTime) * Math.PI * 1.35;
+      const envelope = Math.pow(Math.sin(Math.PI * orbitTime), 2);
+      const curlSide = particle.orbitRadius * Math.sin(angle) * envelope;
+      const curlIn =
+        particle.orbitRadius * (1 - Math.cos(angle)) * envelope * 0.4;
+      const pull = Math.max(0, (s - 0.22) / 0.78);
+      const inward = reach * pull * pull + curlIn;
+      const px =
+        x +
+        tangentX * coast +
+        (dx / distance) * inward -
+        (dy / distance) * curlSide;
+      const py =
+        y +
+        tangentY * coast +
+        (dy / distance) * inward +
+        (dx / distance) * curlSide;
       keyframes.push({
         transform: `translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) scale(${(scale * (1 - 0.75 * s)).toFixed(4)})`,
         opacity: opacity * Math.pow(1 - s, 1.35),
@@ -148,6 +165,7 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
         driftY,
         duration,
         strokeId: stroke.id,
+        orbitRadius: compact ? 4 + Math.random() * 3 : 6 + Math.random() * 4,
       };
       particles.add(particle);
       watch(particle, animation);

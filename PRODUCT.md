@@ -4,7 +4,7 @@ Website artistik bertema gambar black hole Interstellar yang diberikan pengguna,
 
 Kapal low poly berlayar ke black hole dengan kamera pelan dari belakang. Cincin membesar bertahap sesuai kedekatan kapal, sementara cahaya, pantulan kaca dan air, ombak, angin, serta wake ikut berubah halus. Quote original melayang dengan pantulan cahaya artistik dan berganti otomatis setiap 16 detik melalui fade. Kata tetap bisa diseret, disebar, dan dikembalikan. Pergantian menunggu interaksi dan dapat dijeda tersendiri. Selain quote, kontrol memakai ikon tanpa label visual. Folder rapi dan source versi sebelumnya disimpan.
 
-Permintaan tambahan: drag kata meninggalkan partikel kecil seperti debu bintang. Setelah dilepas, debu berbelok pelan ke arah black hole sambil memudar. Jumlah, laju emisi, jarak tarikan, dan umur dibatasi agar tidak mengganggu quote. Efek mengikuti jeda scene dan dinonaktifkan untuk reduced motion.
+Permintaan tambahan: drag kata meninggalkan partikel kecil seperti debu bintang. Setelah dilepas, debu membuat lengkungan orbit kecil lalu tertarik ke black hole sambil memudar. Putaran mereda sebelum tarikan mengambil alih. Jumlah, laju emisi, radius orbit, jarak tarikan, dan umur dibatasi agar tidak mengganggu quote. Efek mengikuti jeda scene dan dinonaktifkan untuk reduced motion.
 
 ## Platform dan stack
 
