@@ -162,7 +162,8 @@ export function createCosmos(
   const pointer = new THREE.Vector2();
   const smoothPointer = new THREE.Vector2();
   const approachState = {},
-    approachPoint = {};
+    approachPoint = {},
+    blackHoleScreen = {};
   function resize() {
     width = canvas.clientWidth;
     height = canvas.clientHeight;
@@ -249,7 +250,24 @@ export function createCosmos(
       material.uniforms.uProximity.value = approachState.envelope;
       material.uniforms.uGlowGain.value = approachState.glowGain;
       accretionLighting.update(time, camera.aspect, approachState);
-      onAtmosphere(time, approachState);
+      // Inverse of the backdrop's cover crop, overscan and camera transform.
+      // Zoom is anchored at this center, so approach zoom does not shift it.
+      const fitX = Math.min(1, camera.aspect / (16 / 9));
+      const fitY = Math.min(1, 16 / 9 / camera.aspect);
+      const cropCenter = THREE.MathUtils.lerp(
+        0.5,
+        0.615,
+        1 - THREE.MathUtils.smoothstep(camera.aspect, 0.75, 1.4),
+      );
+      const sky = cameraMotion.background;
+      blackHoleScreen.x =
+        width *
+        (0.5 +
+          (0.626 - cropCenter - sky.x * fitX) / (fitX * 0.975 * sky.scale));
+      blackHoleScreen.y =
+        height *
+        (0.5 - (0.442 - 0.5 - sky.y * fitY) / (fitY * 0.975 * sky.scale));
+      onAtmosphere(time, approachState, blackHoleScreen);
       farStars.rotation.z = time * 0.00035;
       middleStars.rotation.z = time * 0.0007;
       nearStars.rotation.z = time * 0.001;

@@ -43,7 +43,8 @@ try {
     initialTime: import.meta.env.DEV
       ? Number(new URLSearchParams(location.search).get("sceneTime") || 0)
       : 0,
-    onAtmosphere: (time, approach) => quotes.updateAtmosphere(time, approach),
+    onAtmosphere: (time, approach, blackHoleScreen) =>
+      quotes.updateAtmosphere(time, approach, blackHoleScreen),
   });
 } catch (error) {
   console.error("3D scene unavailable:", error);

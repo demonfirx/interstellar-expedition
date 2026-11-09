@@ -1,4 +1,4 @@
-/** A sparse drag trail. WAAPI owns the fade; no extra animation loop or timers. */
+/** Sparse drag dust curves toward the projected black hole when its word is released. */
 export function createQuoteDust(host, { reducedMotion = false } = {}) {
   const layer = document.createElement("div");
   layer.className = "quote-dust";
@@ -9,7 +9,9 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     paused = false,
     hidden = document.hidden,
     disposed = false,
-    stroke = null;
+    stroke = null,
+    strokeId = 0;
+  const attractor = { x: innerWidth * 0.66, y: innerHeight * 0.56 };
 
   function remove(particle) {
     particles.delete(particle);
@@ -25,9 +27,67 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
     for (const { animation } of particles)
       paused || hidden ? animation.pause() : animation.play();
   }
+  function watch(particle, animation) {
+    particle.animation = animation;
+    const finish = () => {
+      // A canceled drift must not remove the replacement attraction animation.
+      if (particle.animation === animation) remove(particle);
+    };
+    animation.finished.then(finish, finish);
+  }
+  function opacityAt(progress) {
+    if (progress <= 0.12) return (progress / 0.12) * 0.5;
+    if (progress <= 0.55) return 0.5 - ((progress - 0.12) / 0.43) * 0.27;
+    return Math.max(0, ((1 - progress) / 0.45) * 0.23);
+  }
+  function scaleAt(progress) {
+    if (progress <= 0.12) return 0.65 + (progress / 0.12) * 0.35;
+    if (progress <= 0.55) return 1 - ((progress - 0.12) / 0.43) * 0.2;
+    return 0.8 - ((progress - 0.55) / 0.45) * 0.55;
+  }
+  function attract(particle) {
+    const elapsed = Number(particle.animation.currentTime) || 0;
+    const remaining = particle.duration - elapsed;
+    if (remaining <= 100) return;
+    const progress = Math.min(1, elapsed / particle.duration);
+    const x = particle.startX + particle.driftX * progress;
+    const y = particle.startY + particle.driftY * progress;
+    const dx = attractor.x - x,
+      dy = attractor.y - y,
+      distance = Math.hypot(dx, dy);
+    if (distance < 1) return;
+    const duration = Math.min(2200, remaining);
+    const reach = Math.min(distance * 0.09, 48, 8 + (duration / 1000) * 13);
+    const tangentX = particle.driftX * (duration / particle.duration);
+    const tangentY = particle.driftY * (duration / particle.duration);
+    const opacity = opacityAt(progress),
+      scale = scaleAt(progress);
+    const keyframes = [];
+    for (let i = 0; i <= 12; i++) {
+      const s = i / 12;
+      // Keep the existing position and tangent, then gradually bend toward the source.
+      const coast = s - s * s * 0.5;
+      const px = x + tangentX * coast + (dx / distance) * reach * s * s;
+      const py = y + tangentY * coast + (dy / distance) * reach * s * s;
+      keyframes.push({
+        transform: `translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) scale(${(scale * (1 - 0.75 * s)).toFixed(4)})`,
+        opacity: opacity * Math.pow(1 - s, 1.35),
+        offset: s,
+      });
+    }
+    particle.animation.cancel();
+    const animation = particle.element.animate(keyframes, {
+      duration,
+      easing: "linear",
+      fill: "both",
+    });
+    particle.element.dataset.phase = "attracted";
+    watch(particle, animation);
+    if (paused || hidden) animation.pause();
+  }
   return {
     begin(x, y) {
-      stroke = { x, y, distance: 0, lastEmission: -Infinity };
+      stroke = { id: ++strokeId, x, y, distance: 0, lastEmission: -Infinity };
     },
     trail(x, y, vx, vy, now) {
       if (!stroke || disposed || reduced || paused || hidden) return;
@@ -64,6 +124,8 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
         -15 - Math.random() * 18 + Math.max(-6, Math.min(6, vy * 0.025));
       const transform = (progress, scale) =>
         `translate3d(${(startX + driftX * progress).toFixed(2)}px,${(startY + driftY * progress).toFixed(2)}px,0) scale(${scale})`;
+      const duration = 2100 + Math.random() * 700;
+      element.dataset.phase = "drifting";
       const animation = element.animate(
         [
           { transform: transform(0, 0.65), opacity: 0, offset: 0 },
@@ -72,20 +134,37 @@ export function createQuoteDust(host, { reducedMotion = false } = {}) {
           { transform: transform(1, 0.25), opacity: 0, offset: 1 },
         ],
         {
-          duration: 2100 + Math.random() * 700,
+          duration,
           easing: "linear",
           fill: "both",
         },
       );
-      const particle = { element, animation };
+      const particle = {
+        element,
+        animation,
+        startX,
+        startY,
+        driftX,
+        driftY,
+        duration,
+        strokeId: stroke.id,
+      };
       particles.add(particle);
-      animation.finished.then(
-        () => remove(particle),
-        () => remove(particle),
-      );
+      watch(particle, animation);
     },
     end() {
+      if (!stroke) return;
+      const released = stroke.id;
       stroke = null;
+      if (disposed || reduced) return;
+      for (const particle of particles)
+        if (particle.strokeId === released) attract(particle);
+    },
+    setAttractor(point) {
+      if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y))
+        return;
+      attractor.x = point.x;
+      attractor.y = point.y;
     },
     setPaused(value) {
       paused = value;

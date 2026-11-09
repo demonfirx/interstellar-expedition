@@ -350,7 +350,8 @@ export function createQuotePlayground(
   render();
   updateAutoButton();
   return {
-    updateAtmosphere(time, approach) {
+    updateAtmosphere(time, approach, blackHoleScreen) {
+      dust.setAttractor(blackHoleScreen);
       const now = performance.now();
       const dt =
         previousWallTime === null
