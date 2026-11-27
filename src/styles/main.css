@@ -294,3 +294,21 @@ body {
     transition: none !important;
   }
 }
+.return-to-archive {
+  position: fixed;
+  z-index: 5;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  padding: 0.62rem 0.9rem;
+  border: 1px solid #e7eaff55;
+  border-radius: 30px;
+  background: #080913cc;
+  color: #f6f5ff;
+  font: 500 12px/1.2 'Manrope Variable', system-ui, sans-serif;
+  text-decoration: none;
+}
+
+.return-to-archive:focus-visible {
+  outline: 2px solid #f9dbac;
+  outline-offset: 3px;
+}

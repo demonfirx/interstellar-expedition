@@ -1,6 +1,8 @@
 # Interstellar
 
-Pemandangan layar penuh dengan kapal layar low poly yang berlayar pelan menuju black hole. Ukuran cincin, cahaya, pantulan, angin, dan ombak berubah bersama jarak perjalanan. Kamera mengikuti dari belakang; jejak ombak tertinggal pada jalur dan kapal terpantul di air. Enam quote Inggris original menjadi satu-satunya tulisan visual, dengan kata yang bisa dimainkan.
+Beranda menampilkan arsip ekspedisi dengan tiga objek 3D. Klik atau tahan **Masuk arsip**, pilih objek dari daftar di bawah, lalu seret objek untuk memutarnya. Tombol panah mengganti pilihan. Saat area 3D menerima fokus, tombol panah memutar objek dan **Home** mengatur ulang sudut pandang.
+
+Menu **Pelayaran** membuka pemandangan layar penuh dengan kapal layar low poly yang berlayar pelan menuju black hole. Ukuran cincin, cahaya, pantulan, angin, dan ombak berubah bersama jarak perjalanan. Kamera mengikuti dari belakang. Enam quote Inggris original bisa dimainkan saat berlayar.
 
 ## Menjalankan
 
@@ -10,6 +12,7 @@ npm run dev
 ```
 
 Preview: `http://127.0.0.1:5174/`.
+Pelayaran: `http://127.0.0.1:5174/voyage.html`.
 
 ```powershell
 npm test
@@ -21,6 +24,7 @@ npm run preview
 
 ```text
 src/
+  archive/                      Galeri 3D, model instrumen, dan transisi partikel
   main.js                       Kontrol ikon dan shortcut
   models/sailing-vessel.js       Model kapal, kabin, layar, dan tali rigging
   models/sea-motion.js           Gelombang serta gerak mengapung kapal

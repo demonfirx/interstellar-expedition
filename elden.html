@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ELDEN RING — Maerith, Blade of Destined Death</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Vignette, Letterbox & Destined Death screen tint -->
+    <div id="vignette"></div>
+    <div id="letterbox-top" class="letterbox"></div>
+    <div id="letterbox-bottom" class="letterbox"></div>
+    <div id="death-burn-overlay"></div>
+    <div id="hit-flash"></div>
+
+    <!-- Lock-on reticle -->
+    <div id="lock-reticle" class="hidden">
+      <div class="reticle-ring"></div>
+      <div class="reticle-dot"></div>
+    </div>
+
+    <!-- Player HUD (Top-Left) -->
+    <div id="player-hud" class="hidden">
+      <div class="rune-emblem" title="Tarnished">
+        <svg viewBox="0 0 40 40" width="38" height="38">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#c8a862" stroke-width="1.4" opacity="0.8" />
+          <circle cx="20" cy="14" r="7" fill="none" stroke="#e2c683" stroke-width="1.2" />
+          <circle cx="15" cy="24" r="7" fill="none" stroke="#e2c683" stroke-width="1.2" />
+          <circle cx="25" cy="24" r="7" fill="none" stroke="#e2c683" stroke-width="1.2" />
+          <line x1="20" y1="4" x2="20" y2="36" stroke="#e2c683" stroke-width="1.4" />
+        </svg>
+      </div>
+      <div class="bars-column">
+        <div class="bar-row hp-row">
+          <div class="bar-track" id="hp-track">
+            <div class="bar-burn-cap" id="hp-burn-cap"></div>
+            <div class="bar-delay" id="hp-delay"></div>
+            <div class="bar-fill hp-fill" id="hp-fill"></div>
+          </div>
+        </div>
+        <div class="bar-row fp-row">
+          <div class="bar-track" id="fp-track">
+            <div class="bar-fill fp-fill" id="fp-fill"></div>
+          </div>
+        </div>
+        <div class="bar-row stam-row">
+          <div class="bar-track" id="stam-track">
+            <div class="bar-delay" id="stam-delay"></div>
+            <div class="bar-fill stam-fill" id="stam-fill"></div>
+          </div>
+        </div>
+        <div class="status-effects" id="status-effects"></div>
+      </div>
+    </div>
+
+    <!-- Quick Slots (Bottom-Left) -->
+    <div id="quick-slots" class="hidden">
+      <div class="slot-box flask-slot" id="flask-slot">
+        <div class="slot-icon">
+          <svg viewBox="0 0 32 32" width="28" height="28">
+            <path d="M13 4h6v4l5 8c2 3.5 0 11-8 11s-10-7.5-8-11l5-8V4z" fill="rgba(180,35,35,0.85)" stroke="#d4af5a" stroke-width="1.5" />
+            <ellipse cx="16" cy="18" rx="4" ry="2.2" fill="rgba(255,140,100,0.45)" />
+          </svg>
+        </div>
+        <span class="slot-count" id="flask-count">5</span>
+        <span class="slot-key">R</span>
+      </div>
+      <div class="slot-box weapon-slot">
+        <div class="slot-icon">
+          <svg viewBox="0 0 32 32" width="26" height="26">
+            <line x1="6" y1="26" x2="26" y2="6" stroke="#d9d2c5" stroke-width="2.6" stroke-linecap="round" />
+            <line x1="9" y1="18" x2="15" y2="24" stroke="#c8a862" stroke-width="2.2" />
+          </svg>
+        </div>
+        <span class="slot-label">Greatsword</span>
+      </div>
+    </div>
+
+    <!-- Controls Hint (Top-Right) -->
+    <div id="controls-hint" class="hidden">
+      <div><kbd>WASD</kbd> Move &nbsp; <kbd>SPACE</kbd> Dodge Roll</div>
+      <div><kbd>LMB</kbd> / <kbd>J</kbd> Light Attack &nbsp; <kbd>RMB</kbd> / <kbd>K</kbd> Heavy</div>
+      <div><kbd>SHIFT</kbd> Block / Parry &nbsp; <kbd>R</kbd> Crimson Flask</div>
+      <div><kbd>Q</kbd> / <kbd>TAB</kbd> Lock-On &nbsp; <kbd>M</kbd> Mute</div>
+    </div>
+
+    <!-- Boss Health Bar (Bottom-Center) -->
+    <div id="boss-hud" class="hidden">
+      <div class="boss-header">
+        <span id="boss-name">Maerith, the Black Blade</span>
+        <span id="boss-dmg-num" class="hidden"></span>
+      </div>
+      <div class="boss-bar-frame">
+        <div class="boss-bar-delay" id="boss-hp-delay"></div>
+        <div class="boss-bar-fill" id="boss-hp-fill"></div>
+      </div>
+      <div class="boss-poise-frame" title="Stance">
+        <div class="boss-poise-fill" id="boss-poise-fill"></div>
+      </div>
+    </div>
+
+    <!-- Phase 2 Subtitle -->
+    <div id="boss-dialogue" class="hidden">
+      <p id="boss-dialogue-text"></p>
+    </div>
+
+    <!-- Elden Ring Zone / Site of Grace Banner -->
+    <div id="zone-banner" class="hidden">
+      <div id="zone-banner-title">CRUMBLING FARUM AZULA</div>
+      <div id="zone-banner-sub">Beside the Great Bridge</div>
+    </div>
+
+    <!-- Interactive Prompt ([E] Rest at Site of Grace / Traverse the Mist) -->
+    <button id="interact-prompt" class="hidden" type="button">
+      <kbd>E</kbd>
+      <span id="interact-label">Traverse the Mist</span>
+    </button>
+
+    <!-- Start / Title Screen -->
+    <div id="title-screen">
+      <a class="return-to-archive" href="/">← Arsip ekspedisi</a>
+      <div class="title-ornament"></div>
+      <div class="title-eyebrow">CRUMBLING FARUM AZULA</div>
+      <h1 class="title-main">ELDEN RING</h1>
+      <h2 class="title-sub">MAERITH, BLADE OF DESTINED DEATH</h2>
+      <p class="title-lore">
+        "O, Death. Become my blade once more."
+      </p>
+      <div id="loading-progress" class="loading-progress">
+        <div class="loading-track"><div id="loading-fill" class="loading-fill"></div></div>
+        <div id="loading-label" class="loading-label">FORGING ARENA...</div>
+      </div>
+      <div class="title-btn-row">
+        <button id="btn-start" class="elden-btn" disabled>FORGING ARENA...</button>
+        <button id="btn-direct-boss" class="elden-btn elden-btn-secondary" disabled>CHALLENGE MAERITH</button>
+      </div>
+      <div class="title-controls">
+        <span><kbd>WASD</kbd> Walk</span>
+        <span><kbd>DRAG</kbd> Orbit Camera</span>
+        <span><kbd>E</kbd> Grace / Mist</span>
+        <span><kbd>SPACE</kbd> Roll</span>
+        <span><kbd>LMB</kbd>/<kbd>J</kbd> Light</span>
+        <span><kbd>RMB</kbd>/<kbd>K</kbd> Heavy</span>
+        <span><kbd>SHIFT</kbd> Guard</span>
+      </div>
+      <div class="title-credits">
+        3D Warrior Model: dark_igorek (CC BY 4.0) · Skeletal Motion: Mixamo
+      </div>
+    </div>
+
+    <!-- Result Banner (YOU DIED / DEMIGOD FELLED) -->
+    <div id="result-screen" class="hidden">
+      <div class="result-band">
+        <h1 id="result-title">YOU DIED</h1>
+        <p id="result-subtitle"></p>
+      </div>
+      <div class="result-stats" id="result-stats"></div>
+      <div class="title-btn-row">
+        <button id="btn-retry" class="elden-btn">RETURN TO SITE OF GRACE</button>
+        <button id="btn-retry-boss" class="elden-btn elden-btn-secondary">RETRY MAERITH DIRECTLY</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/elden/main.js"></script>
+  </body>
+</html>

@@ -1,5 +1,11 @@
 # Visual system
 
+## Arsip ekspedisi
+
+Model 3D menjadi fokus di tengah panggung gelap. Judul serif dan aksen tembaga pada antarmuka mengikuti warna material Tidal Array. Judul, objek, dan pilihan objek disusun vertikal di ponsel. Panel detail bisa dibuka dari tombol yang dapat diakses dengan keyboard.
+
+## Mode pelayaran
+
 Satu scene penuh dengan quote Inggris original sebagai satu-satunya teks terlihat. Gambar black hole menjadi latar lautan kosmik, dengan kapal layar kecil di bagian bawah pemandangan.
 
 - Palet: hitam kebiruan, cahaya biru-ungu, sedikit pantulan hangat dari cakram sumber.

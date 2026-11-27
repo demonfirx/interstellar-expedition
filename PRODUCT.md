@@ -1,5 +1,9 @@
 # Product
 
+Beranda Interstellar adalah galeri 3D dengan tiga objek yang bisa diputar dan dibuka detailnya. Tidal Array adalah instrumen navigasi fiktif. Lumen Sailer terhubung ke cerita pelayaran, dan Event Horizon menampilkan interpretasi artistik black hole.
+
+## Mode pelayaran
+
 Website artistik bertema gambar black hole Interstellar yang diberikan pengguna, dengan kapal layar 3D yang menjelajahi lautan kosmik. Scene memenuhi layar. Permintaan terbaru menambahkan quote Inggris yang membangun dan bisa dimainkan, sebagai pengecualian dari arahan sebelumnya tanpa tulisan.
 
 Kapal low poly berlayar ke black hole dengan kamera pelan dari belakang. Cincin membesar bertahap sesuai kedekatan kapal, sementara cahaya, pantulan kaca dan air, ombak, angin, serta wake ikut berubah halus. Quote original melayang dengan pantulan cahaya artistik dan berganti otomatis setiap 16 detik melalui fade. Kata tetap bisa diseret, disebar, dan dikembalikan. Pergantian menunggu interaksi dan dapat dijeda tersendiri. Selain quote, kontrol memakai ikon tanpa label visual. Folder rapi dan source versi sebelumnya disimpan.
