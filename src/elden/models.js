@@ -1,26 +1,43 @@
 import * as THREE from "three";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone as cloneSkinned } from "three/addons/utils/SkeletonUtils.js";
 import { createDestinedDeathShaderMaterial } from "./materials.js";
 
 const MODEL_BASE = "/models/elden";
+const PACK_URL = `${MODEL_BASE}/elden-pack.glb`;
 
-const ANIMATION_FILES = {
-  idle: `${MODEL_BASE}/animations/Idle.fbx`,
-  walk: `${MODEL_BASE}/animations/Walk.fbx`,
-  run: `${MODEL_BASE}/animations/Run.fbx`,
-  swordRun: `${MODEL_BASE}/animations/SwordRun.fbx`,
-  crouch: `${MODEL_BASE}/animations/Crouch.fbx`,
-  jump: `${MODEL_BASE}/animations/Jump.fbx`,
-  bigJump: `${MODEL_BASE}/animations/BigJump.fbx`,
-  slash: `${MODEL_BASE}/animations/Slash.fbx`,
-  crouchSlash: `${MODEL_BASE}/animations/Crouchslash.fbx`,
-  jumpHit: `${MODEL_BASE}/animations/JumpHit.fbx`,
-  kick: `${MODEL_BASE}/animations/Kick.fbx`,
-  landing: `${MODEL_BASE}/animations/Landing.fbx`,
-  floating: `${MODEL_BASE}/animations/floating.fbx`,
-};
+function loadPackedEldenAssets(onProgress, startLabel, doneLabel) {
+  const gltfLoader = new GLTFLoader();
+  gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+  onProgress(0.08, startLabel);
+
+  return new Promise((resolve, reject) => {
+    gltfLoader.load(
+      PACK_URL,
+      (gltf) => {
+        const byName = new Map();
+        for (const s of gltf.scenes ?? []) {
+          if (s?.name) byName.set(s.name, s);
+        }
+        onProgress(0.85, doneLabel);
+        resolve({
+          warrior: byName.get("warrior") ?? gltf.scene,
+          palette: byName.get("palette"),
+          sword: byName.get("sword"),
+          scabbard: byName.get("scabbard"),
+          animations: gltf.animations ?? [],
+        });
+      },
+      (xhr) => {
+        if (xhr.lengthComputable && xhr.total > 0) {
+          onProgress(0.08 + (xhr.loaded / xhr.total) * 0.72, startLabel);
+        }
+      },
+      reject
+    );
+  });
+}
 
 const VARIANT_SUFFIX = /(\.\d{3}|\s*\(\d+\))$/;
 const MATERIAL_WORD = /^(?:material|mat)|(?:material|mat)$/g;
@@ -106,60 +123,6 @@ function indexBones(root) {
     if (short && !map.has(short)) map.set(short, node);
   });
   return map;
-}
-
-function measureClipUnits(clip, bones) {
-  const hipsName = bones.get("Hips")?.name ?? null;
-  const ratios = [];
-  for (const track of clip.tracks) {
-    if (!track.name.endsWith(".position") || track.values.length < 3) continue;
-    const nodeName = THREE.PropertyBinding.parseTrackName(track.name).nodeName;
-    if (nodeName === hipsName) continue;
-    const bone = bones.get(nodeName);
-    if (!bone) continue;
-    const clipLen = Math.hypot(track.values[0], track.values[1], track.values[2]);
-    const bindLen = bone.position.length();
-    if (clipLen < 1e-6 || bindLen < 1e-6) continue;
-    ratios.push(bindLen / clipLen);
-  }
-  if (!ratios.length) return 1;
-  ratios.sort((a, b) => a - b);
-  const ratio = ratios[ratios.length >> 1];
-  return ratio > 0.5 && ratio < 2 ? 1 : ratio;
-}
-
-function retargetClip(sourceFbx, clipName, bones) {
-  const clip = (sourceFbx?.animations ?? [])[0];
-  if (!clip) return null;
-
-  const unitScale = measureClipUnits(clip, bones);
-  const hipsName = bones.get("Hips")?.name ?? null;
-  const hipsBind = bones.get("Hips");
-  const tracks = [];
-
-  for (const original of clip.tracks) {
-    const track = original.clone();
-    const node = THREE.PropertyBinding.parseTrackName(track.name).nodeName;
-    if (!bones.has(node)) continue;
-
-    if (track.name.endsWith(".position")) {
-      const vals = track.values;
-      if (unitScale !== 1) {
-        for (let i = 0; i < vals.length; i++) vals[i] *= unitScale;
-      }
-      if (node === hipsName) {
-        const bx = hipsBind ? hipsBind.position.x : vals[0];
-        const bz = hipsBind ? hipsBind.position.z : vals[2];
-        for (let i = 0; i < vals.length; i += 3) {
-          vals[i] = bx;
-          vals[i + 2] = bz;
-        }
-      }
-    }
-    tracks.push(track);
-  }
-
-  return tracks.length ? new THREE.AnimationClip(clipName, clip.duration, tracks) : null;
 }
 
 function measureRigForwardYaw(bones) {
@@ -350,17 +313,17 @@ function createOrganicBladeAura({
 function createCurvedBucklerShield() {
   const group = new THREE.Group();
 
-  const steelMat = new THREE.MeshPhysicalMaterial({
+  const steelMat = new THREE.MeshStandardMaterial({
     color: 0x3b4049,
-    roughness: 0.34,
-    metalness: 0.88,
-    clearcoat: 0.28,
+    roughness: 0.3,
+    metalness: 0.9,
+    envMapIntensity: 1.2,
   });
-  const goldMat = new THREE.MeshPhysicalMaterial({
+  const goldMat = new THREE.MeshStandardMaterial({
     color: 0xc9a152,
-    roughness: 0.26,
-    metalness: 0.94,
-    clearcoat: 0.35,
+    roughness: 0.24,
+    metalness: 0.95,
+    envMapIntensity: 1.3,
   });
 
   // Gently domed forged steel buckler shell
@@ -432,17 +395,17 @@ function createCurvedBucklerShield() {
 function createMaerithCrownAndHorns() {
   const group = new THREE.Group();
 
-  const goldMat = new THREE.MeshPhysicalMaterial({
+  const goldMat = new THREE.MeshStandardMaterial({
     color: 0xc99c46,
-    roughness: 0.26,
-    metalness: 0.94,
-    clearcoat: 0.32,
+    roughness: 0.24,
+    metalness: 0.95,
+    envMapIntensity: 1.3,
   });
-  const obsidianMat = new THREE.MeshPhysicalMaterial({
+  const obsidianMat = new THREE.MeshStandardMaterial({
     color: 0x161218,
-    roughness: 0.3,
-    metalness: 0.9,
-    clearcoat: 0.25,
+    roughness: 0.28,
+    metalness: 0.92,
+    envMapIntensity: 1.2,
   });
   const eyeMat = new THREE.MeshBasicMaterial({
     color: new THREE.Color(4.2, 0.22, 0.32),
@@ -508,7 +471,7 @@ function createMaerithCrownAndHorns() {
  * Built from the REAL sculpted 3D sword.glb (ZERO BoxGeometry!) enhanced into a dark
  * obsidian greatsword wrapped in an organic, undulating GLSL Destined Death fire sheath.
  */
-function createColossalBlackBlade(swordTemplate) {
+function createColossalBlackBlade(swordTemplate, sharedLight) {
   const group = new THREE.Group();
 
   const colossalSword = swordTemplate.clone(true);
@@ -539,9 +502,12 @@ function createColossalBlackBlade(swordTemplate) {
   });
   group.add(aura.group);
 
-  const bladeLight = new THREE.PointLight(0xff1e2d, 3.6, 13);
-  bladeLight.position.set(0, 0, 1.25);
-  group.add(bladeLight);
+  let bladeLight = sharedLight;
+  if (bladeLight === undefined) {
+    bladeLight = new THREE.PointLight(0xff1e2d, 3.6, 13);
+    bladeLight.position.set(0, 0, 1.25);
+    group.add(bladeLight);
+  }
 
   const bladeBase = new THREE.Object3D();
   bladeBase.position.set(0, 0, 0.24);
@@ -591,77 +557,36 @@ function createClipDriver(mixer, clips) {
   return { play, actions };
 }
 
-function normalizeRig(fbx, targetHeight) {
-  fbx.scale.setScalar(0.01);
-  fbx.updateMatrixWorld(true);
+function normalizeRig(rig, targetHeight) {
+  rig.scale.setScalar(1);
+  rig.position.set(0, 0, 0);
+  rig.updateMatrixWorld(true);
 
-  const box = new THREE.Box3().setFromObject(fbx);
+  const box = new THREE.Box3().setFromObject(rig);
   const size = new THREE.Vector3();
   const center = new THREE.Vector3();
   box.getSize(size);
   box.getCenter(center);
 
   const k = targetHeight / Math.max(0.001, size.y);
-  fbx.scale.setScalar(0.01 * k);
-  fbx.position.set(-center.x * k, -box.min.y * k, -center.z * k);
-  fbx.updateMatrixWorld(true);
+  rig.scale.setScalar(k);
+  rig.position.set(-center.x * k, -box.min.y * k, -center.z * k);
+  rig.updateMatrixWorld(true);
   return { heightFactor: targetHeight / 1.78, height: size.y * k };
 }
 
-export async function loadEldenCharacters(onProgress = () => {}) {
-  const fbxManager = new THREE.LoadingManager();
-  const BLANK_PNG =
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-  fbxManager.setURLModifier((url) => (/\.(fbm|png|jpg|jpeg|tga|bmp)/i.test(url) && !url.includes(".fbx") ? BLANK_PNG : url));
-  const fbxLoader = new FBXLoader(fbxManager);
-  const gltfLoader = new GLTFLoader();
+function buildClipMap(animations) {
+  const map = new Map();
+  for (const clip of animations ?? []) {
+    if (clip?.name) map.set(clip.name, clip);
+  }
+  return map;
+}
 
-  const animEntries = Object.entries(ANIMATION_FILES);
-  const totalTasks = 4 + animEntries.length;
-  let completed = 0;
+export async function loadEldenCharacters(onProgress = () => {}, { playerLight, bossLight } = {}) {
+  const pack = await loadPackedEldenAssets(onProgress, "Forging armored rigs...", "Assembling Farum rigs...");
 
-  const tick = (label) => {
-    completed += 1;
-    onProgress(Math.min(1, completed / totalTasks), label);
-  };
-
-  const loadFbx = (url, label) =>
-    new Promise((resolve, reject) => {
-      fbxLoader.load(
-        url,
-        (obj) => {
-          tick(label);
-          resolve(obj);
-        },
-        undefined,
-        reject
-      );
-    });
-
-  const loadGltf = (url, label) =>
-    new Promise((resolve, reject) => {
-      gltfLoader.load(
-        url,
-        (gltf) => {
-          tick(label);
-          resolve(gltf);
-        },
-        undefined,
-        reject
-      );
-    });
-
-  onProgress(0.02, "Forging armored rigs...");
-
-  const [baseFbx, paletteGltf, swordGltf, scabbardGltf, ...animFbxs] = await Promise.all([
-    loadFbx(`${MODEL_BASE}/tpose.fbx`, "Armored mesh"),
-    loadGltf(`${MODEL_BASE}/textures.glb`, "PBR armor textures"),
-    loadGltf(`${MODEL_BASE}/sword.glb`, "Blade mesh"),
-    loadGltf(`${MODEL_BASE}/Scabbard.glb`, "Scabbard mesh"),
-    ...animEntries.map(([name, url]) => loadFbx(url, `Motion: ${name}`)),
-  ]);
-
-  const palette = buildMaterialPalette(paletteGltf.scene, true);
+  const palette = buildMaterialPalette(pack.palette, false);
 
   const prepGltfProp = (obj) => {
     obj.traverse((n) => {
@@ -672,11 +597,12 @@ export async function loadEldenCharacters(onProgress = () => {}) {
     });
     return obj;
   };
-  const swordTemplate = prepGltfProp(swordGltf.scene);
-  const scabbardTemplate = prepGltfProp(scabbardGltf.scene);
+  const swordTemplate = prepGltfProp(pack.sword);
+  const scabbardTemplate = prepGltfProp(pack.scabbard);
 
-  const bossFbx = cloneSkinned(baseFbx);
-  const playerFbx = baseFbx;
+  const playerFbx = pack.warrior;
+  const bossFbx = cloneSkinned(playerFbx);
+  const bakedClips = buildClipMap(pack.animations);
 
   // --- Dress Player (Tarnished) with authentic PBR armor palette ---
   playerFbx.traverse((node) => {
@@ -741,11 +667,7 @@ export async function loadEldenCharacters(onProgress = () => {}) {
   playerFbx.rotation.y = -playerForwardYaw;
   playerTilt.add(playerFbx);
 
-  const playerClips = new Map();
-  animEntries.forEach(([name], i) => {
-    const clip = retargetClip(animFbxs[i], name, playerBones);
-    if (clip) playerClips.set(name, clip);
-  });
+  const playerClips = bakedClips;
 
   const playerMixer = new THREE.AnimationMixer(playerFbx);
   const playerDriver = createClipDriver(playerMixer, playerClips);
@@ -775,9 +697,11 @@ export async function loadEldenCharacters(onProgress = () => {}) {
   });
   playerSwordGroup.add(playerBladeAura.group);
 
-  const playerSwordLight = new THREE.PointLight(0xffb84d, 1.8, 7.5);
-  playerSwordLight.position.set(0, 0, 0.72);
-  playerSwordGroup.add(playerSwordLight);
+  const playerSwordLight = playerLight ?? new THREE.PointLight(0xffb84d, 1.8, 7.5);
+  if (!playerLight) {
+    playerSwordLight.position.set(0, 0, 0.72);
+    playerSwordGroup.add(playerSwordLight);
+  }
 
   const playerBladeBase = new THREE.Object3D();
   playerBladeBase.position.set(0, 0, 0.14);
@@ -810,10 +734,6 @@ export async function loadEldenCharacters(onProgress = () => {}) {
     pFactor
   );
 
-  const healLight = new THREE.PointLight(0xffc966, 0, 8);
-  healLight.position.set(0, 1.35, 0.25);
-  playerRoot.add(healLight);
-
   let prevPlayerState = "";
   let wardBlend = 0;
 
@@ -824,7 +744,6 @@ export async function loadEldenCharacters(onProgress = () => {}) {
     animate(state, progress, time, moveSpeed, dt = 0.016, stateDuration = 0.5) {
       playerTilt.position.set(0, 0, 0);
       playerTilt.rotation.set(0, 0, 0);
-      healLight.intensity = 0;
 
       const entered = state !== prevPlayerState;
       prevPlayerState = state;
@@ -882,10 +801,10 @@ export async function loadEldenCharacters(onProgress = () => {}) {
         playerDriver.play("crouch", { loop: true, fade: 0.1, timeScale: 1.0 });
       } else if (state === "grace_rest") {
         playerDriver.play("crouch", { loop: true, fade: 0.22, timeScale: 0.55 });
-        healLight.intensity = Math.sin(progress * Math.PI) * 6.8;
+        playerSwordLight.intensity = 2.4 + Math.sin(progress * Math.PI) * 6.4;
       } else if (state === "heal") {
         playerDriver.play("idle", { loop: true, fade: 0.12, timeScale: 0.8 });
-        healLight.intensity = Math.sin(progress * Math.PI) * 5.2;
+        playerSwordLight.intensity = 2.2 + Math.sin(progress * Math.PI) * 4.8;
       } else if (state === "hit") {
         playerDriver.play("kick", { loop: false, fade: 0.05, timeScale: 1.4, restart: entered });
         playerTilt.rotation.x = -0.22 * Math.sin(progress * Math.PI);
@@ -916,11 +835,7 @@ export async function loadEldenCharacters(onProgress = () => {}) {
   bossFbx.rotation.y = -bossForwardYaw;
   bossTilt.add(bossFbx);
 
-  const bossClips = new Map();
-  animEntries.forEach(([name], i) => {
-    const clip = retargetClip(animFbxs[i], name, bossBones);
-    if (clip) bossClips.set(name, clip);
-  });
+  const bossClips = bakedClips;
 
   const bossMixer = new THREE.AnimationMixer(bossFbx);
   const bossDriver = createClipDriver(bossMixer, bossClips);
@@ -929,7 +844,7 @@ export async function loadEldenCharacters(onProgress = () => {}) {
   const runeShaderMat = createDestinedDeathShaderMaterial();
 
   // Mount Colossal Black Blade with Organic GLSL Destined Death Flame Sheath
-  const blackBlade = createColossalBlackBlade(swordTemplate);
+  const blackBlade = createColossalBlackBlade(swordTemplate, bossLight);
   attachToBone(
     bossBones.get("RightHand"),
     blackBlade.group,
@@ -955,10 +870,6 @@ export async function loadEldenCharacters(onProgress = () => {}) {
     { position: [0, 0.06, 0.16], rotationDeg: [0, 0, 0], scale: 1.0 },
     bFactor
   );
-
-  const bossAuraLight = new THREE.PointLight(0xff182a, 1.8, 15);
-  bossAuraLight.position.set(0, 2.2, 0);
-  bossRoot.add(bossAuraLight);
 
   let prevBossState = "";
   let slashSecondTriggered = false;
@@ -987,8 +898,9 @@ export async function loadEldenCharacters(onProgress = () => {}) {
 
       runeShaderMat.uniforms.uIntensity.value = flameIntensity;
       blackBlade.aura.update(time, flameIntensity);
-      blackBlade.bladeLight.intensity = isPhase2 ? 6.0 + Math.sin(time * 9) * 0.9 : isDormant ? 2.2 : 3.4;
-      bossAuraLight.intensity = isPhase2 ? 4.4 + Math.sin(time * 5.5) * 0.6 : isDormant ? 0.9 : 1.4;
+      if (blackBlade.bladeLight) {
+        blackBlade.bladeLight.intensity = isPhase2 ? 7.2 + Math.sin(time * 9) * 1.0 : isDormant ? 2.6 : 4.2;
+      }
 
       const armorGlow = isPhase2 ? 0.34 + Math.sin(time * 6) * 0.1 : 0.08;
       for (const m of bossEmissiveMats) m.emissiveIntensity = armorGlow;
@@ -998,8 +910,7 @@ export async function loadEldenCharacters(onProgress = () => {}) {
         const p = Math.min(1, progress);
         bossTilt.rotation.x = -p * (Math.PI / 2);
         bossTilt.position.y = (1 - p) * 0.25;
-        blackBlade.bladeLight.intensity = Math.max(0, 3.0 * (1 - p));
-        bossAuraLight.intensity = Math.max(0, 2.5 * (1 - p));
+        if (blackBlade.bladeLight) blackBlade.bladeLight.intensity = Math.max(0, 3.6 * (1 - p));
       } else if (state === "dormant") {
         bossDriver.play("idle", { loop: true, fade: 0.25, timeScale: 0.65 });
       } else if (state === "staggered") {
@@ -1011,14 +922,12 @@ export async function loadEldenCharacters(onProgress = () => {}) {
           const p = progress / 0.58;
           bossTilt.position.y = Math.sin(p * Math.PI * 0.5) * 2.15;
           blackBlade.aura.update(time, 1.5 + p * 1.4);
-          blackBlade.bladeLight.intensity = 5.5 + p * 5.0;
-          bossAuraLight.intensity = 4.0 + p * 6.5;
+          if (blackBlade.bladeLight) blackBlade.bladeLight.intensity = 6.5 + p * 6.5;
         } else {
           const p = (progress - 0.58) / 0.42;
           bossTilt.position.y = 2.15 * Math.max(0, 1 - p * 1.35);
           blackBlade.aura.update(time, 2.3);
-          blackBlade.bladeLight.intensity = 7.5;
-          bossAuraLight.intensity = 8.0;
+          if (blackBlade.bladeLight) blackBlade.bladeLight.intensity = 9.5;
         }
       } else if (state === "slash_combo") {
         if (progress < 0.56) {
@@ -1084,12 +993,134 @@ export async function loadEldenCharacters(onProgress = () => {}) {
     },
   };
 
-  animFbxs.forEach((f) =>
-    f.traverse((n) => {
-      n.geometry?.dispose?.();
-    })
-  );
-
   onProgress(1, "Ready");
   return { playerModel, bossModel };
+}
+
+/**
+ * Instant binary GLB loader for the standalone Maerith showcase page.
+ * Shares warrior-opt.glb, textures-opt.glb, and sword-opt.glb with elden.html
+ * so browser cache carries seamlessly across both pages.
+ */
+export async function loadMaerithShowcase(onProgress = () => {}) {
+  const pack = await loadPackedEldenAssets(onProgress, "Memuat zirah obsidian...", "Merangkai Maerith...");
+
+  const bossFbx = pack.warrior;
+  const palette = buildMaterialPalette(pack.palette, false);
+  const swordTemplate = pack.sword;
+  swordTemplate.traverse((n) => {
+    if (n.isMesh) {
+      n.castShadow = true;
+      n.receiveShadow = true;
+    }
+  });
+
+  const bossEmissiveMats = [];
+  bossFbx.traverse((node) => {
+    if (!node.isMesh && !node.isSkinnedMesh) return;
+    node.castShadow = true;
+    node.receiveShadow = true;
+    node.frustumCulled = false;
+
+    const mats = Array.isArray(node.material) ? node.material : [node.material];
+    const mapped = mats.map((origMat) => {
+      if (!origMat) return origMat;
+      const authored = palette.resolve(origMat.name, node.name);
+      const base = authored
+        ? authored.clone()
+        : new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.88 });
+      base.color = new THREE.Color(0x63545c);
+      base.metalness = Math.max(base.metalness ?? 0.5, 0.78);
+      base.roughness = Math.min(base.roughness ?? 0.5, 0.36);
+      base.envMapIntensity = 1.85;
+      base.emissive = new THREE.Color(0x9a0b18);
+      base.emissiveIntensity = 0.08;
+      bossEmissiveMats.push(base);
+      return base;
+    });
+    node.material = Array.isArray(node.material) ? mapped : mapped[0];
+  });
+
+  const root = new THREE.Group();
+  const tilt = new THREE.Group();
+  root.add(tilt);
+
+  const { heightFactor } = normalizeRig(bossFbx, 3.45);
+  const bones = indexBones(bossFbx);
+  const forwardYaw = measureRigForwardYaw(bones);
+  bossFbx.rotation.y = -forwardYaw;
+  tilt.add(bossFbx);
+
+  const clips = buildClipMap(pack.animations);
+  const mixer = new THREE.AnimationMixer(bossFbx);
+  const driver = createClipDriver(mixer, clips);
+  driver.play("idle", { loop: true, fade: 0, timeScale: 0.82 });
+
+  const runeShaderMat = createDestinedDeathShaderMaterial();
+  const blackBlade = createColossalBlackBlade(swordTemplate, null);
+  attachToBone(
+    bones.get("RightHand"),
+    blackBlade.group,
+    { position: [-0.051, 0.102, 0.052], rotationDeg: [-168.3, 84, -0.8], scale: 1.08 },
+    heightFactor
+  );
+
+  const crown = createMaerithCrownAndHorns();
+  attachToBone(
+    bones.get("Head"),
+    crown,
+    { position: [0, 0.02, 0], rotationDeg: [0, 0, 0], scale: 1.05 },
+    heightFactor
+  );
+
+  const chestSeal = new THREE.Mesh(new THREE.OctahedronGeometry(0.085, 0), runeShaderMat);
+  chestSeal.scale.set(0.65, 1.25, 0.25);
+  attachToBone(
+    bones.get("Spine2"),
+    chestSeal,
+    { position: [0, 0.06, 0.16], rotationDeg: [0, 0, 0], scale: 1.0 },
+    heightFactor
+  );
+
+  let activeStance = "idle";
+
+  function setStance(stance) {
+    activeStance = stance;
+    if (stance === "slash") {
+      driver.play("slash", { loop: true, fade: 0.14, timeScale: 0.92, restart: true });
+    } else if (stance === "slam") {
+      driver.play("jumpHit", { loop: true, fade: 0.16, timeScale: 0.86, restart: true });
+    } else if (stance === "ascend") {
+      driver.play("floating", { loop: true, fade: 0.24, timeScale: 0.95, restart: true });
+    } else {
+      driver.play("idle", { loop: true, fade: 0.22, timeScale: 0.82 });
+    }
+  }
+
+  function update(dt, time, isPhase2, paused) {
+    runeShaderMat.uniforms.uTime.value = time;
+    const targetFlame = isPhase2
+      ? 1.18 + Math.sin(time * 7.0) * 0.16
+      : 0.72 + Math.sin(time * 4.8) * 0.08;
+    runeShaderMat.uniforms.uIntensity.value = targetFlame;
+    blackBlade.aura.update(time, targetFlame);
+
+    const armorGlow = isPhase2 ? 0.24 + Math.sin(time * 5.6) * 0.06 : 0.06;
+    for (const m of bossEmissiveMats) m.emissiveIntensity = armorGlow;
+
+    const targetLift = activeStance === "ascend" ? 0.52 + Math.sin(time * 2.1) * 0.14 : 0;
+    tilt.position.y = THREE.MathUtils.lerp(tilt.position.y, targetLift, Math.min(1, dt * 5));
+
+    if (!paused) mixer.update(dt);
+  }
+
+  onProgress(1, "Siap");
+  return {
+    root,
+    bladeBase: blackBlade.bladeBase,
+    bladeTip: blackBlade.bladeTip,
+    setStance,
+    update,
+    isBladeTrailActive: () => activeStance === "slash" || activeStance === "slam",
+  };
 }

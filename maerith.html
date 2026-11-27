@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#090708" />
+    <meta
+      name="description"
+      content="Maerith, Blade of Destined Death — arsip 3D interaktif dan gerbang menuju duel Crumbling Farum Azula."
+    />
+    <title>Maerith · Blade of Destined Death</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>html,body{margin:0;background:#090708;color:#efe6d5}</style>
+    <link rel="stylesheet" href="/src/maerith/maerith.css" />
+    <link rel="preload" as="fetch" crossorigin href="/models/elden/elden-pack.glb" />
+  </head>
+  <body>
+    <main class="maerith" data-phase="1" data-stance="idle" style="--phase-index: 0">
+      <div class="stage-layer" aria-hidden="true">
+        <canvas id="maerith-canvas"></canvas>
+        <div class="stage-vignette"></div>
+      </div>
+
+      <header class="maerith-header">
+        <a class="sigil-brand" href="/maerith.html" aria-label="Maerith, beranda">
+          <span class="sigil-mark" aria-hidden="true">
+            <svg viewBox="0 0 28 28" width="24" height="24" fill="none">
+              <circle cx="14" cy="14" r="11.5" stroke="currentColor" stroke-width="1.2" opacity="0.82" />
+              <path d="M14 2.5v23" stroke="currentColor" stroke-width="1.2" />
+              <circle cx="14" cy="10.2" r="4.5" stroke="currentColor" stroke-width="1.05" opacity="0.9" />
+              <circle cx="10.8" cy="16.8" r="4.5" stroke="currentColor" stroke-width="1.05" opacity="0.72" />
+              <circle cx="17.2" cy="16.8" r="4.5" stroke="currentColor" stroke-width="1.05" opacity="0.72" />
+            </svg>
+          </span>
+          <span class="sigil-name">MAERITH</span>
+        </a>
+
+        <div class="header-right">
+          <nav class="header-nav" aria-label="Navigasi halaman">
+            <a class="nav-link" href="/elden.html?mode=boss">
+              <span>Arena Duel</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>
+            </a>
+            <a class="nav-link" href="/">
+              <span>Interstellar</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </a>
+          </nav>
+          <span class="header-divider" aria-hidden="true"></span>
+          <span class="phase-indicator" id="header-phase">FASE I</span>
+        </div>
+      </header>
+
+      <div class="maerith-stage">
+        <div
+          class="orbit-surface"
+          id="maerith-orbit"
+          tabindex="0"
+          role="group"
+          aria-label="Seret untuk memutar model 3D Maerith, gulir untuk memperbesar, tombol panah untuk memutar saat fokus"
+        ></div>
+
+        <!-- Left Editorial Dossier -->
+        <section class="maerith-dossier" aria-labelledby="maerith-title">
+          <h1 id="maerith-title">Maerith</h1>
+          <p class="maerith-epithet" id="maerith-epithet">The Black Blade · Farum Azula</p>
+          <p class="maerith-description" id="maerith-description">
+            Penjaga Crumbling Farum Azula bersenjata bilah obsidian Destined Death. Putar model 3D, nyalakan Fase II untuk melihat gerhana merah, atau masuk langsung ke arena duel.
+          </p>
+
+          <dl class="boss-metrics" aria-label="Parameter pertarungan Maerith">
+            <div>
+              <dt>HP</dt>
+              <dd>3.200</dd>
+            </div>
+            <div>
+              <dt>POISE</dt>
+              <dd>100</dd>
+            </div>
+            <div>
+              <dt>FASE II</dt>
+              <dd>52% HP</dd>
+            </div>
+          </dl>
+
+          <div class="maerith-actions">
+            <a class="cta-primary" href="/elden.html?mode=boss">
+              <span>Tantang Maerith</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>
+            </a>
+            <a class="cta-secondary" href="/elden.html?mode=explore">
+              <span>Jelajahi Farum Azula</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </a>
+          </div>
+
+          <button type="button" class="codex-trigger" id="open-codex">
+            <span>Arsip serangan &amp; mekanik</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </button>
+        </section>
+
+        <!-- Top-Right Live Orbital Telemetry -->
+        <div class="orbit-telemetry" aria-hidden="true">
+          <span class="tele-item">
+            <span class="tele-label">AZ</span>
+            <span class="tele-value" id="tele-yaw">+000°</span>
+          </span>
+          <span class="tele-sep"></span>
+          <span class="tele-item">
+            <span class="tele-label">EL</span>
+            <span class="tele-value" id="tele-pitch">+008°</span>
+          </span>
+          <span class="tele-sep"></span>
+          <span class="tele-item">
+            <span class="tele-label">ZM</span>
+            <span class="tele-value" id="tele-zoom">1.00×</span>
+          </span>
+        </div>
+
+        <!-- Subtle Real-Time Rig Streaming Indicator (disappears automatically when ready) -->
+        <div class="rig-loader" id="rig-loader" role="status" aria-live="polite">
+          <div class="rig-loader-head">
+            <span id="rig-loader-label">Memuat zirah obsidian...</span>
+            <span id="rig-loader-pct">0%</span>
+          </div>
+          <div class="rig-loader-track">
+            <div class="rig-loader-fill" id="rig-loader-fill"></div>
+          </div>
+        </div>
+
+        <!-- Bottom-Right Stance & Camera Controls -->
+        <div class="stage-controls" aria-label="Kontrol pose dan kamera 3D">
+          <div class="stance-group" role="group" aria-label="Pilih pose 3D Maerith">
+            <button type="button" class="stance-btn" data-stance="idle" aria-pressed="true">Siaga</button>
+            <button type="button" class="stance-btn" data-stance="slash" aria-pressed="false">Tebasan</button>
+            <button type="button" class="stance-btn" data-stance="slam" aria-pressed="false">Hantaman</button>
+            <button type="button" class="stance-btn" data-stance="ascend" aria-pressed="false">Ascend</button>
+          </div>
+          <div class="camera-group">
+            <button type="button" class="icon-btn" id="maerith-reset" aria-label="Atur ulang kamera" title="Atur ulang kamera (Home)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <button type="button" class="icon-btn" id="maerith-pause" aria-label="Jeda animasi" aria-pressed="false" title="Jeda atau lanjutkan animasi">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Phase Dock -->
+      <nav class="phase-dock" aria-label="Pilih fase Maerith">
+        <div class="phase-tabs">
+          <span class="phase-rail" aria-hidden="true"></span>
+          <button type="button" class="phase-tab" data-phase="1" aria-current="true">
+            <span class="phase-num">01</span>
+            <span class="phase-copy">
+              <span class="phase-title">The Black Blade</span>
+              <span class="phase-sub">Fase I · Badai emas Farum Azula · Stalk 4.9 m/s</span>
+            </span>
+          </button>
+          <button type="button" class="phase-tab" data-phase="2">
+            <span class="phase-num">02</span>
+            <span class="phase-copy">
+              <span class="phase-title">Blade of Destined Death</span>
+              <span class="phase-sub">Fase II · Gerhana merah · 3× proyektil Destined Arc</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="dock-hint" aria-hidden="true">
+          <span>Seret 360° · Gulir untuk zoom</span>
+        </div>
+      </nav>
+    </main>
+
+    <!-- Right-Anchored Combat Codex Sheet -->
+    <dialog class="codex-dialog" id="codex-dialog" aria-labelledby="codex-title">
+      <article class="codex-card">
+        <header class="codex-header">
+          <div class="codex-id">
+            <span class="codex-code">FARUM AZULA</span>
+            <span class="codex-sub">ARSIP PERTARUNGAN</span>
+          </div>
+          <form method="dialog">
+            <button class="icon-btn" type="submit" aria-label="Tutup arsip" autofocus>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </form>
+        </header>
+
+        <h2 id="codex-title">Maerith, Blade of Destined Death</h2>
+        <p class="codex-quote">“O, Death... Become my blade once more.”</p>
+
+        <dl class="codex-list">
+          <div>
+            <dt>Slash Combo</dt>
+            <dd>Kombo dua tebasan maju cepat; memberikan efek Destined Death saat Fase II.</dd>
+          </div>
+          <div>
+            <dt>Overhead Slam</dt>
+            <dd>Hantaman bilah berat yang memicu gelombang kejut radial di atas lantai batu.</dd>
+          </div>
+          <div>
+            <dt>Leap Slam</dt>
+            <dd>Lompatan tinggi menuju posisi pemain diikuti ledakan area merah (radius 6,5 m).</dd>
+          </div>
+          <div>
+            <dt>Destined Arc</dt>
+            <dd>Gelombang sabit hitam-merah jarak jauh; menembakkan 3 busur kipas sekaligus di Fase II.</dd>
+          </div>
+          <div>
+            <dt>Spin Frenzy</dt>
+            <dd>Serangan putaran agresif khusus Fase II dengan 3 jendela tebasan berturut-turut.</dd>
+          </div>
+          <div>
+            <dt>Destined Death</dt>
+            <dd>Memangkas batas HP maksimum sementara (-8% per kena hingga 72%) dan membakar HP selama 4,5 detik.</dd>
+          </div>
+          <div>
+            <dt>Parry &amp; Stagger</dt>
+            <dd>Tangkisan tepat waktu (<kbd>Shift</kbd> &le; 0,22 dtk) mengurangi 28 Poise; musuh stagger menerima 1,65× damage.</dd>
+          </div>
+        </dl>
+
+        <footer class="codex-footer">
+          <a class="cta-primary codex-cta" href="/elden.html?mode=boss">
+            <span>Masuk Arena Duel</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>
+          </a>
+          <p class="codex-credits">Model 3D Warrior: dark_igorek (CC BY 4.0) · Gerak skeletal: Mixamo</p>
+        </footer>
+      </article>
+    </dialog>
+
+    <script type="module" src="/src/maerith/main.js"></script>
+  </body>
+</html>

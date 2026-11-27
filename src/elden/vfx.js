@@ -117,6 +117,10 @@ export function createBladeTrail(
   mesh.renderOrder = 8;
   scene.add(mesh);
 
+  // Pre-allocated ring buffer avoids per-frame Vector3 allocations & GC churn during sword swings
+  const poolBase = Array.from({ length: maxSamples }, () => new THREE.Vector3());
+  const poolTip = Array.from({ length: maxSamples }, () => new THREE.Vector3());
+  let sampleCount = 0;
   let elapsed = 0;
 
   return {
@@ -125,36 +129,39 @@ export function createBladeTrail(
       mat.uniforms.uTime.value = elapsed;
 
       if (active) {
-        samples.unshift({
-          base: baseWorldPos.clone(),
-          tip: tipWorldPos.clone(),
-        });
-        if (samples.length > maxSamples) samples.pop();
-      } else if (samples.length > 0) {
-        samples.pop();
+        const last = Math.min(sampleCount, maxSamples - 1);
+        for (let i = last; i > 0; i--) {
+          poolBase[i].copy(poolBase[i - 1]);
+          poolTip[i].copy(poolTip[i - 1]);
+        }
+        poolBase[0].copy(baseWorldPos);
+        poolTip[0].copy(tipWorldPos);
+        if (sampleCount < maxSamples) sampleCount++;
+      } else if (sampleCount > 0) {
+        sampleCount--;
       }
 
-      if (samples.length < 4) {
+      if (sampleCount < 4) {
         mesh.visible = false;
         return;
       }
 
       mesh.visible = true;
       const posAttr = geo.attributes.position;
-      const count = samples.length;
-      mat.uniforms.uCount.value = count;
+      mat.uniforms.uCount.value = sampleCount;
 
       for (let i = 0; i < maxSamples; i++) {
-        const s = samples[Math.min(i, count - 1)];
+        const src = i < sampleCount ? i : sampleCount - 1;
+        const b = poolBase[src];
+        const t = poolTip[src];
         const idxBase = i * 2;
-        const idxTip = idxBase + 1;
-        posAttr.setXYZ(idxBase, s.base.x, s.base.y, s.base.z);
-        posAttr.setXYZ(idxTip, s.tip.x, s.tip.y, s.tip.z);
+        posAttr.setXYZ(idxBase, b.x, b.y, b.z);
+        posAttr.setXYZ(idxBase + 1, t.x, t.y, t.z);
       }
       posAttr.needsUpdate = true;
     },
     clear() {
-      samples.length = 0;
+      sampleCount = 0;
       mesh.visible = false;
     },
   };
@@ -297,11 +304,15 @@ export function createVFXManager(scene) {
   const projectileMeshes = new Map();
   let elapsed = 0;
 
-  // Shared geometries (zero per-event geometry allocations!)
+  // Shared geometries & materials (zero per-event geometry allocations!)
   const shockwaveGeo = new THREE.PlaneGeometry(2.2, 2.2);
-  const pillarOuterGeo = new THREE.CylinderGeometry(1.6, 2.9, 22, 28, 1, true);
-  const pillarCoreGeo = new THREE.CylinderGeometry(0.75, 1.45, 22, 20, 1, true);
+  const pillarOuterGeo = new THREE.CylinderGeometry(1.6, 2.9, 22, 24, 1, true);
+  const pillarCoreGeo = new THREE.CylinderGeometry(0.75, 1.45, 22, 18, 1, true);
+  const arcGeo = new THREE.TorusGeometry(1.55, 0.22, 10, 26, Math.PI * 0.92);
+  const coreGeo = new THREE.TorusGeometry(1.52, 0.09, 8, 20, Math.PI * 0.85);
+  const coreMat = new THREE.MeshBasicMaterial({ color: 0x0b0205 });
   const waveMat = createDestinedWaveMaterial();
+  let hadLiveSparks = false;
 
   // Pooled GPU-friendly circular glowing spark points (NO BoxGeometry cubes!)
   const MAX_SPARKS = 260;
@@ -435,15 +446,21 @@ export function createVFXManager(scene) {
   }
 
   function syncProjectiles(projectiles, dt) {
-    const activeIds = new Set(projectiles.map((p) => p.id));
-    for (const [id, mesh] of projectileMeshes.entries()) {
-      if (!activeIds.has(id)) {
-        scene.remove(mesh);
-        mesh.traverse((child) => {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material && child.material !== waveMat) child.material.dispose();
-        });
-        projectileMeshes.delete(id);
+    if (projectiles.length === 0 && projectileMeshes.size === 0) return;
+
+    if (projectileMeshes.size > 0) {
+      for (const [id, mesh] of projectileMeshes.entries()) {
+        let alive = false;
+        for (let i = 0; i < projectiles.length; i++) {
+          if (projectiles[i].id === id) {
+            alive = true;
+            break;
+          }
+        }
+        if (!alive) {
+          scene.remove(mesh);
+          projectileMeshes.delete(id);
+        }
       }
     }
 
@@ -451,23 +468,13 @@ export function createVFXManager(scene) {
       let mesh = projectileMeshes.get(p.id);
       if (!mesh) {
         const group = new THREE.Group();
-        // Sweeping crimson crescent wave
-        const arcGeo = new THREE.TorusGeometry(1.55, 0.22, 10, 28, Math.PI * 0.92);
         const arc = new THREE.Mesh(arcGeo, waveMat);
         arc.rotation.z = Math.PI * 0.04;
         group.add(arc);
 
-        // Dark obsidian black-flame spine inside the crescent
-        const coreGeo = new THREE.TorusGeometry(1.52, 0.09, 8, 22, Math.PI * 0.85);
-        const core = new THREE.Mesh(
-          coreGeo,
-          new THREE.MeshBasicMaterial({ color: 0x0b0205 })
-        );
+        const core = new THREE.Mesh(coreGeo, coreMat);
         core.rotation.z = Math.PI * 0.08;
         group.add(core);
-
-        const light = new THREE.PointLight(0xff1a2b, 4.8, 10);
-        group.add(light);
 
         scene.add(group);
         mesh = group;
@@ -475,7 +482,7 @@ export function createVFXManager(scene) {
       }
       mesh.position.set(p.x, 1.65, p.z);
       mesh.rotation.y = p.yaw;
-      if (Math.random() < dt * 28) {
+      if (Math.random() < dt * 24) {
         spawnSparks(p.x, 1.5, p.z, 0xff1e2d, 1);
       }
     }
@@ -547,9 +554,10 @@ export function createVFXManager(scene) {
         sparkAlpha[i] = 1 - t;
       }
     }
-    if (anySpark || true) {
+    if (anySpark || hadLiveSparks) {
       sparkGeo.attributes.position.needsUpdate = true;
       sparkGeo.attributes.aAlpha.needsUpdate = true;
+      hadLiveSparks = anySpark;
     }
   }
 
@@ -568,10 +576,6 @@ export function createVFXManager(scene) {
     pillars.length = 0;
     for (const m of projectileMeshes.values()) {
       scene.remove(m);
-      m.traverse((child) => {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material && child.material !== waveMat) child.material.dispose();
-      });
     }
     projectileMeshes.clear();
     for (let i = 0; i < MAX_SPARKS; i++) {

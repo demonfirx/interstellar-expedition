@@ -259,8 +259,8 @@ export function buildArena(scene) {
   const sunLight = new THREE.DirectionalLight(0xffcf8c, 2.75);
   sunLight.position.set(22, 34, -26);
   sunLight.castShadow = true;
-  sunLight.shadow.mapSize.width = 2048;
-  sunLight.shadow.mapSize.height = 2048;
+  sunLight.shadow.mapSize.width = 1024;
+  sunLight.shadow.mapSize.height = 1024;
   sunLight.shadow.camera.near = 6;
   sunLight.shadow.camera.far = 96;
   const d = 29;
@@ -321,11 +321,11 @@ export function buildArena(scene) {
     metalness: 0.12,
   });
 
-  const goldMat = new THREE.MeshPhysicalMaterial({
+  const goldMat = new THREE.MeshStandardMaterial({
     color: 0xc59a4a,
-    roughness: 0.34,
-    metalness: 0.9,
-    clearcoat: 0.25,
+    roughness: 0.28,
+    metalness: 0.92,
+    envMapIntensity: 1.25,
   });
 
   const bronzeMat = new THREE.MeshStandardMaterial({
@@ -779,9 +779,9 @@ export function buildArena(scene) {
     f2.rotation.y = Math.PI * 0.5;
     bGroup.add(f1, f2);
 
-    // Warm local firelight on alternate braziers (keeps GPU light count lean & fast!)
-    if (idx % 2 === 0) {
-      const pLight = new THREE.PointLight(0xff8c33, 5.5, 18, 1.6);
+    // Strategic warm firelights (2 PointLights total keep shader compilation fast while HDR flames bloom)
+    if (idx === 0 || idx === 6) {
+      const pLight = new THREE.PointLight(0xff8c33, 6.4, 24, 1.5);
       pLight.position.set(0, 2.9, 0);
       bGroup.add(pLight);
       brazierLights.push({ light: pLight, phase: idx * 1.7 });
@@ -796,9 +796,9 @@ export function buildArena(scene) {
   const ruinSlabGeo = new THREE.BoxGeometry(6.2, 0.85, 3.2);
   const ruinSpireGeo = new THREE.CylinderGeometry(0.18, 1.35, 7.2, 7);
 
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 16; i++) {
     const dist = 54 + (i % 6) * 9.0 + Math.random() * 7;
-    const ang = (i / 22) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+    const ang = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
     const y = -4 + Math.random() * 28;
 
     const ruinGroup = new THREE.Group();
@@ -847,26 +847,19 @@ export function buildArena(scene) {
     });
   }
 
-  // Soft Glowing Circular Ember & Ash Particle Shader (NO ugly square PointsMaterial pixels!)
-  const particleCount = 460;
+  // 100% GPU-driven Ember & Ash Particle Shader (zero CPU particle loop, zero per-frame buffer uploads!)
+  const particleCount = 320;
   const pPos = new Float32Array(particleCount * 3);
   const pSeed = new Float32Array(particleCount);
   const pScale = new Float32Array(particleCount);
-  const pVel = [];
   for (let i = 0; i < particleCount; i++) {
-    const r = Math.sqrt(Math.random()) * (ARENA_RADIUS + 11);
+    const r = Math.sqrt(Math.random()) * (ARENA_RADIUS + 10);
     const a = Math.random() * Math.PI * 2;
     pPos[i * 3] = Math.cos(a) * r;
     pPos[i * 3 + 1] = Math.random() * 18;
     pPos[i * 3 + 2] = Math.sin(a) * r;
     pSeed[i] = Math.random();
     pScale[i] = 0.55 + Math.random() * 1.45;
-    pVel.push({
-      vx: (Math.random() - 0.5) * 1.15,
-      vy: 0.55 + Math.random() * 1.15,
-      vz: (Math.random() - 0.5) * 1.15,
-      swirl: (Math.random() - 0.5) * 0.25,
-    });
   }
 
   const pGeo = new THREE.BufferGeometry();
@@ -881,7 +874,7 @@ export function buildArena(scene) {
     uniforms: {
       uTime: { value: 0 },
       uPhase2: { value: 0 },
-      uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      uPixelRatio: { value: Math.min(window.devicePixelRatio, 1.5) },
     },
     vertexShader: `
       attribute float aSeed;
@@ -889,11 +882,20 @@ export function buildArena(scene) {
       varying float vSeed;
       varying float vFlicker;
       uniform float uTime;
+      uniform float uPhase2;
       uniform float uPixelRatio;
       void main() {
         vSeed = aSeed;
-        vFlicker = 0.68 + 0.32 * sin(uTime * (4.0 + aSeed * 5.0) + aSeed * 40.0);
-        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+        vec3 p = position;
+        float speed = (0.042 + aSeed * 0.055) * (1.0 + uPhase2 * 0.65);
+        float cycle = fract(p.y / 18.0 + uTime * speed);
+        p.y = cycle * 18.0 + 0.15;
+        float swirl = uTime * (0.45 + aSeed * 0.4) + aSeed * 37.0;
+        p.x += sin(swirl) * 0.85;
+        p.z += cos(swirl * 0.9) * 0.85;
+        float edgeFade = smoothstep(0.0, 0.12, cycle) * (1.0 - smoothstep(0.82, 1.0, cycle));
+        vFlicker = (0.68 + 0.32 * sin(uTime * (4.0 + aSeed * 5.0) + aSeed * 40.0)) * edgeFade;
+        vec4 mvPos = modelViewMatrix * vec4(p, 1.0);
         gl_PointSize = clamp((34.0 * aScale) / max(1.0, -mvPos.z), 1.8, 12.0) * uPixelRatio;
         gl_Position = projectionMatrix * mvPos;
       }
@@ -984,23 +986,6 @@ export function buildArena(scene) {
         r.mesh.position.y = r.y + Math.sin(time * r.bobSpeed + r.dist) * 0.85;
         r.mesh.rotation.y += dt * 0.08;
       }
-
-      // Drift ash & glowing embers upward with gentle storm spiral
-      const posAttr = pGeo.attributes.position;
-      for (let i = 0; i < particleCount; i++) {
-        let x = posAttr.getX(i) + (pVel[i].vx + Math.sin(time * 0.8 + i) * 0.35) * dt;
-        let y = posAttr.getY(i) + pVel[i].vy * dt * (1.0 + phase2Blend * 0.95);
-        let z = posAttr.getZ(i) + (pVel[i].vz + Math.cos(time * 0.7 + i) * 0.35) * dt;
-        if (y > 18) {
-          y = 0.15;
-          const r = Math.sqrt(Math.random()) * (ARENA_RADIUS + 6);
-          const a = Math.random() * Math.PI * 2;
-          x = Math.cos(a) * r;
-          z = Math.sin(a) * r;
-        }
-        posAttr.setXYZ(i, x, y, z);
-      }
-      posAttr.needsUpdate = true;
     },
   };
 }

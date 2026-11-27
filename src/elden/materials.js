@@ -15,33 +15,33 @@ function heightCanvasToNormalTexture(heightCanvas, strength = 2.4, repeatX = 1, 
   const outCtx = outCanvas.getContext("2d");
   const outImg = outCtx.createImageData(w, h);
   const dst = outImg.data;
-
-  const sample = (x, y) => {
-    const cx = ((x % w) + w) % w;
-    const cy = ((y % h) + h) % h;
-    return src[(cy * w + cx) * 4] / 255;
-  };
+  const inv255 = 1 / 255;
 
   for (let y = 0; y < h; y++) {
+    const ym = (y === 0 ? h - 1 : y - 1) * w;
+    const yc = y * w;
+    const yp = (y === h - 1 ? 0 : y + 1) * w;
     for (let x = 0; x < w; x++) {
-      const tl = sample(x - 1, y - 1);
-      const t = sample(x, y - 1);
-      const tr = sample(x + 1, y - 1);
-      const l = sample(x - 1, y);
-      const r = sample(x + 1, y);
-      const bl = sample(x - 1, y + 1);
-      const b = sample(x, y + 1);
-      const br = sample(x + 1, y + 1);
+      const xm = x === 0 ? w - 1 : x - 1;
+      const xp = x === w - 1 ? 0 : x + 1;
+
+      const tl = src[(ym + xm) << 2] * inv255;
+      const t = src[(ym + x) << 2] * inv255;
+      const tr = src[(ym + xp) << 2] * inv255;
+      const l = src[(yc + xm) << 2] * inv255;
+      const r = src[(yc + xp) << 2] * inv255;
+      const bl = src[(yp + xm) << 2] * inv255;
+      const b = src[(yp + x) << 2] * inv255;
+      const br = src[(yp + xp) << 2] * inv255;
 
       const dx = (tr + 2 * r + br - (tl + 2 * l + bl)) * strength;
       const dy = (bl + 2 * b + br - (tl + 2 * t + tr)) * strength;
-      const dz = 1.0;
-      const invLen = 1 / Math.hypot(dx, dy, dz);
+      const invLen = 1 / Math.hypot(dx, dy, 1.0);
 
-      const idx = (y * w + x) * 4;
-      dst[idx] = Math.round((-dx * invLen * 0.5 + 0.5) * 255);
-      dst[idx + 1] = Math.round((-dy * invLen * 0.5 + 0.5) * 255);
-      dst[idx + 2] = Math.round((dz * invLen * 0.5 + 0.5) * 255);
+      const idx = (yc + x) << 2;
+      dst[idx] = ((-dx * invLen * 0.5 + 0.5) * 255) | 0;
+      dst[idx + 1] = ((-dy * invLen * 0.5 + 0.5) * 255) | 0;
+      dst[idx + 2] = ((invLen * 0.5 + 0.5) * 255) | 0;
       dst[idx + 3] = 255;
     }
   }
@@ -117,46 +117,51 @@ export function createFarumEnvironment(renderer) {
 }
 
 /**
- * 1024x1024 carved Farum Azula coliseum floor PBR set:
+ * 512x512 carved Farum Azula coliseum floor PBR set (scaled from 1024 coords for 4x faster startup):
  * weathered basalt flagstones, mortar joints, radial cracks, and metallic gold rune inlays.
  */
 export function createArenaFloorTextures() {
-  const size = 1024;
-  const cx = size / 2;
-  const cy = size / 2;
+  const size = 512;
+  const logical = 1024;
+  const cx = logical / 2;
+  const cy = logical / 2;
   const rand = mulberry32(1337);
 
   const albedoCanvas = document.createElement("canvas");
   albedoCanvas.width = albedoCanvas.height = size;
   const aCtx = albedoCanvas.getContext("2d");
+  aCtx.scale(0.5, 0.5);
 
   const heightCanvas = document.createElement("canvas");
   heightCanvas.width = heightCanvas.height = size;
   const hCtx = heightCanvas.getContext("2d");
+  hCtx.scale(0.5, 0.5);
 
   const roughCanvas = document.createElement("canvas");
   roughCanvas.width = roughCanvas.height = size;
   const rCtx = roughCanvas.getContext("2d");
+  rCtx.scale(0.5, 0.5);
 
   const metalCanvas = document.createElement("canvas");
   metalCanvas.width = metalCanvas.height = size;
   const mCtx = metalCanvas.getContext("2d");
+  mCtx.scale(0.5, 0.5);
 
   // Base weathered slate-sandstone fill
   aCtx.fillStyle = "#3a342d";
-  aCtx.fillRect(0, 0, size, size);
+  aCtx.fillRect(0, 0, logical, logical);
   hCtx.fillStyle = "#989898";
-  hCtx.fillRect(0, 0, size, size);
+  hCtx.fillRect(0, 0, logical, logical);
   rCtx.fillStyle = "#d8d8d8";
-  rCtx.fillRect(0, 0, size, size);
+  rCtx.fillRect(0, 0, logical, logical);
   mCtx.fillStyle = "#080808";
-  mCtx.fillRect(0, 0, size, size);
+  mCtx.fillRect(0, 0, logical, logical);
 
   // Subtle multi-scale weathered mottling & dust patches
-  for (let i = 0; i < 1400; i++) {
-    const x = rand() * size;
-    const y = rand() * size;
-    const r = 6 + rand() * 54;
+  for (let i = 0; i < 650; i++) {
+    const x = rand() * logical;
+    const y = rand() * logical;
+    const r = 8 + rand() * 54;
     const v = 38 + Math.floor(rand() * 44);
     const warm = Math.floor(rand() * 14);
     aCtx.fillStyle = `rgba(${v + warm + 10}, ${v + warm + 3}, ${v - 4}, 0.16)`;
@@ -231,8 +236,8 @@ export function createArenaFloorTextures() {
 
   // Fractured battle cracks radiating across flagstones
   for (let c = 0; c < 34; c++) {
-    let x = cx + (rand() - 0.5) * size * 0.82;
-    let y = cy + (rand() - 0.5) * size * 0.82;
+    let x = cx + (rand() - 0.5) * logical * 0.82;
+    let y = cy + (rand() - 0.5) * logical * 0.82;
     let ang = rand() * Math.PI * 2;
     const steps = 6 + Math.floor(rand() * 10);
     aCtx.strokeStyle = "rgba(12, 9, 8, 0.52)";
@@ -319,73 +324,81 @@ export function createArenaFloorTextures() {
 
 /**
  * Tiled carved temple limestone PBR textures for pillars, arches, and ruins.
+ * Base 256x256 albedo/normal canvases are generated once and reused across repeat scales.
  */
+let _cachedStoneCanvases = null;
 export function createTempleStoneTextures(repeatX = 2, repeatY = 4) {
-  const size = 512;
-  const rand = mulberry32(4096);
+  if (!_cachedStoneCanvases) {
+    const size = 256;
+    const rand = mulberry32(4096);
 
-  const albedoCanvas = document.createElement("canvas");
-  albedoCanvas.width = albedoCanvas.height = size;
-  const aCtx = albedoCanvas.getContext("2d");
+    const albedoCanvas = document.createElement("canvas");
+    albedoCanvas.width = albedoCanvas.height = size;
+    const aCtx = albedoCanvas.getContext("2d");
 
-  const heightCanvas = document.createElement("canvas");
-  heightCanvas.width = heightCanvas.height = size;
-  const hCtx = heightCanvas.getContext("2d");
+    const heightCanvas = document.createElement("canvas");
+    heightCanvas.width = heightCanvas.height = size;
+    const hCtx = heightCanvas.getContext("2d");
 
-  aCtx.fillStyle = "#52493f";
-  aCtx.fillRect(0, 0, size, size);
-  hCtx.fillStyle = "#949494";
-  hCtx.fillRect(0, 0, size, size);
+    aCtx.fillStyle = "#52493f";
+    aCtx.fillRect(0, 0, size, size);
+    hCtx.fillStyle = "#949494";
+    hCtx.fillRect(0, 0, size, size);
 
-  // Layered sedimentary grain + weathering
-  for (let i = 0; i < 900; i++) {
-    const x = rand() * size;
-    const y = rand() * size;
-    const w = 14 + rand() * 68;
-    const h = 4 + rand() * 16;
-    const v = 54 + Math.floor(rand() * 44);
-    aCtx.fillStyle = `rgba(${v + 12}, ${v + 6}, ${v - 2}, 0.2)`;
-    aCtx.fillRect(x, y, w, h);
+    for (let i = 0; i < 420; i++) {
+      const x = rand() * size;
+      const y = rand() * size;
+      const w = 7 + rand() * 34;
+      const h = 2 + rand() * 8;
+      const v = 54 + Math.floor(rand() * 44);
+      aCtx.fillStyle = `rgba(${v + 12}, ${v + 6}, ${v - 2}, 0.2)`;
+      aCtx.fillRect(x, y, w, h);
 
-    const hv = 105 + Math.floor(rand() * 75);
-    hCtx.fillStyle = `rgba(${hv}, ${hv}, ${hv}, 0.22)`;
-    hCtx.fillRect(x, y, w, h);
-  }
-
-  // Horizontal masonry courses + staggered vertical joints
-  const rows = 8;
-  const rowH = size / rows;
-  for (let r = 0; r < rows; r++) {
-    const y = r * rowH;
-    aCtx.fillStyle = "rgba(18, 15, 12, 0.65)";
-    aCtx.fillRect(0, y, size, 3);
-    hCtx.fillStyle = "rgba(25, 25, 25, 0.9)";
-    hCtx.fillRect(0, y, size, 4);
-
-    const cols = 4;
-    const offset = (r % 2) * (size / (cols * 2));
-    for (let c = 0; c < cols; c++) {
-      const x = (c * (size / cols) + offset) % size;
-      aCtx.fillRect(x, y, 2.5, rowH);
-      hCtx.fillRect(x, y, 3.5, rowH);
+      const hv = 105 + Math.floor(rand() * 75);
+      hCtx.fillStyle = `rgba(${hv}, ${hv}, ${hv}, 0.22)`;
+      hCtx.fillRect(x, y, w, h);
     }
+
+    const rows = 8;
+    const rowH = size / rows;
+    for (let r = 0; r < rows; r++) {
+      const y = r * rowH;
+      aCtx.fillStyle = "rgba(18, 15, 12, 0.65)";
+      aCtx.fillRect(0, y, size, 2);
+      hCtx.fillStyle = "rgba(25, 25, 25, 0.9)";
+      hCtx.fillRect(0, y, size, 2.5);
+
+      const cols = 4;
+      const offset = (r % 2) * (size / (cols * 2));
+      for (let c = 0; c < cols; c++) {
+        const x = (c * (size / cols) + offset) % size;
+        aCtx.fillRect(x, y, 1.5, rowH);
+        hCtx.fillRect(x, y, 2, rowH);
+      }
+    }
+
+    const grad = aCtx.createLinearGradient(0, 0, 0, size);
+    grad.addColorStop(0, "rgba(14, 11, 9, 0.35)");
+    grad.addColorStop(0.5, "rgba(0, 0, 0, 0)");
+    grad.addColorStop(1, "rgba(14, 11, 9, 0.35)");
+    aCtx.fillStyle = grad;
+    aCtx.fillRect(0, 0, size, size);
+
+    const baseNormal = heightCanvasToNormalTexture(heightCanvas, 2.2, 1, 1);
+    _cachedStoneCanvases = { albedoCanvas, normalImage: baseNormal.image };
+    baseNormal.dispose();
   }
 
-  // Dark soot & rain streaks near seams
-  const grad = aCtx.createLinearGradient(0, 0, 0, size);
-  grad.addColorStop(0, "rgba(14, 11, 9, 0.35)");
-  grad.addColorStop(0.5, "rgba(0, 0, 0, 0)");
-  grad.addColorStop(1, "rgba(14, 11, 9, 0.35)");
-  aCtx.fillStyle = grad;
-  aCtx.fillRect(0, 0, size, size);
-
-  const map = new THREE.CanvasTexture(albedoCanvas);
+  const map = new THREE.CanvasTexture(_cachedStoneCanvases.albedoCanvas);
   map.colorSpace = THREE.SRGBColorSpace;
   map.wrapS = map.wrapT = THREE.RepeatWrapping;
   map.repeat.set(repeatX, repeatY);
   map.anisotropy = 4;
 
-  const normalMap = heightCanvasToNormalTexture(heightCanvas, 2.2, repeatX, repeatY);
+  const normalMap = new THREE.CanvasTexture(_cachedStoneCanvases.normalImage);
+  normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping;
+  normalMap.repeat.set(repeatX, repeatY);
+  normalMap.anisotropy = 4;
   return { map, normalMap };
 }
 

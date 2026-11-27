@@ -3,87 +3,271 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0e15" />
-    <meta name="description" content="Jelajahi tiga objek dari dunia Interstellar dalam arsip 3D interaktif." />
+    <meta name="theme-color" content="#060910" />
+    <meta
+      name="description"
+      content="Jelajahi tiga objek dari dunia Interstellar dalam arsip 3D interaktif."
+    />
     <title>Interstellar · Arsip Ekspedisi</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>html,body{margin:0;background:#060910;color:#f3efe7}</style>
+    <link rel="stylesheet" href="/src/archive/archive.css" />
   </head>
   <body>
-    <main class="archive" data-state="intro" data-specimen="array">
+    <main class="archive" data-state="intro" data-specimen="array" style="--active-index: 0">
       <div class="exhibition" aria-hidden="true">
-        <div class="exhibition-backdrop"></div>
         <canvas id="archive-canvas"></canvas>
+        <div class="exhibition-vignette"></div>
       </div>
 
       <header class="archive-header">
         <a class="wordmark" href="/" aria-label="Interstellar, beranda">
-          <span class="wordmark-symbol" aria-hidden="true"></span>
-          Interstellar<span class="wordmark-period">.</span>
+          <span class="wordmark-mark" aria-hidden="true">
+            <svg viewBox="0 0 28 20" width="28" height="20" fill="none">
+              <ellipse
+                cx="14"
+                cy="10"
+                rx="12.2"
+                ry="5.8"
+                transform="rotate(-24 14 10)"
+                stroke="currentColor"
+                stroke-width="1.2"
+                opacity="0.88"
+              />
+              <circle cx="14" cy="10" r="2.2" fill="currentColor" />
+            </svg>
+          </span>
+          <span class="wordmark-text">Interstellar<span class="wordmark-period">.</span></span>
         </a>
-        <div class="header-links">
-          <a class="voyage-link elden-link" href="/elden.html">Elden <i data-lucide="arrow-up-right"></i></a>
-          <a class="voyage-link" href="/voyage.html">Pelayaran <i data-lucide="arrow-up-right"></i></a>
+
+        <div class="header-right">
+          <nav class="site-links" aria-label="Destinasi dunia Interstellar">
+            <a class="site-link" href="/voyage.html">
+              <span>Pelayaran</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </a>
+            <a class="site-link site-link--maerith" href="/maerith.html">
+              <span>Maerith</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </a>
+          </nav>
+          <span class="header-divider" aria-hidden="true"></span>
+          <div class="catalog-counter" aria-label="Urutan objek arsip">
+            <span id="catalog-current">01</span>
+            <span class="catalog-sep" aria-hidden="true">/</span>
+            <span>03</span>
+          </div>
         </div>
       </header>
 
-      <div class="archive-content">
+      <div class="archive-stage">
+        <div
+          class="stage-interaction"
+          id="orbit-surface"
+          role="group"
+          aria-label="Seret untuk memutar objek 3D, atau gunakan tombol panah saat fokus"
+        ></div>
+
+        <!-- Overview Editorial Layer (visible in intro state) -->
         <section class="archive-intro" aria-labelledby="archive-title">
-          <p class="eyebrow"><span class="eyebrow-line"></span> Arsip ekspedisi</p>
-          <h1 id="archive-title">Di tepi<br /><em>cakrawala.</em></h1>
-          <p class="archive-description">Jelajahi instrumen, kapal layar, dan pusaran cahaya dari dunia Interstellar.</p>
+          <h1 id="archive-title">Di tepi<br />cakrawala<span class="title-dot">.</span></h1>
+          <p class="archive-description">
+            Jelajahi instrumen navigasi, kapal layar, dan pusaran cahaya dari dunia Interstellar dalam panggung 3D interaktif.
+          </p>
           <div class="archive-actions">
-            <button class="enter-button" type="button" id="enter-archive" aria-describedby="enter-hint">
+            <button
+              class="enter-button"
+              type="button"
+              id="enter-archive"
+              aria-describedby="enter-hint"
+            >
               <span class="enter-fill" aria-hidden="true"></span>
-              <span class="button-text">Masuk arsip <i data-lucide="arrow-up-right"></i></span>
+              <span class="button-text">
+                <span>Masuk arsip</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+              </span>
             </button>
-            <span class="enter-hint" id="enter-hint">Klik atau tahan</span>
           </div>
+          <p class="enter-hint" id="enter-hint">Klik atau tahan — atau langsung seret objek 3D</p>
         </section>
 
+        <!-- Inspection Mode Perimeter HUD (visible in open state) -->
+        <div class="inspect-top-left" aria-live="polite">
+          <button type="button" class="back-button" id="exit-archive">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            <span>Ikhtisar</span>
+          </button>
+        </div>
+
+        <div class="inspect-telemetry" id="inspect-telemetry" aria-hidden="true">
+          <span class="telemetry-item">
+            <span class="telemetry-label">AZ</span>
+            <span class="telemetry-value" id="telemetry-yaw">+000°</span>
+          </span>
+          <span class="telemetry-sep"></span>
+          <span class="telemetry-item">
+            <span class="telemetry-label">EL</span>
+            <span class="telemetry-value" id="telemetry-pitch">+000°</span>
+          </span>
+          <span class="telemetry-sep"></span>
+          <span class="telemetry-item">
+            <span class="telemetry-label">ZM</span>
+            <span class="telemetry-value" id="telemetry-zoom">1.00×</span>
+          </span>
+        </div>
+
+        <!-- Active Specimen Signature (adapts cleanly between intro and open states) -->
         <section class="exhibit-caption" aria-label="Objek aktif">
           <p class="exhibit-category" id="specimen-category">Instrumen navigasi</p>
           <h2 id="specimen-name" aria-live="polite">Tidal Array</h2>
-          <button type="button" class="detail-link" id="show-details">Lihat detail <i data-lucide="plus"></i></button>
+          <p class="exhibit-brief" id="specimen-brief">
+            Dua gimbal konsentris menjaga inti keramik tetap selaras saat gravitasi berubah.
+          </p>
+          <div class="exhibit-actions">
+            <button type="button" class="detail-link" id="show-details">
+              <span>Buka monograf</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            </button>
+            <a class="caption-voyage" id="caption-voyage" href="/voyage.html" hidden>
+              <span>Buka pelayaran</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </a>
+          </div>
         </section>
 
-        <div class="stage-interaction" id="orbit-surface" aria-hidden="true"></div>
+        <!-- 3D Viewport Controls (visible in open state) -->
         <div class="view-controls" id="view-controls" hidden aria-label="Kontrol tampilan 3D">
-          <span class="orbit-hint">Seret objek untuk memutar</span>
-          <button id="reset-view" class="icon-button" type="button" aria-label="Atur ulang sudut pandang" title="Atur ulang sudut pandang"><i data-lucide="rotate-ccw"></i></button>
-          <button id="pause-view" class="icon-button" type="button" aria-label="Jeda animasi" aria-pressed="false" title="Jeda atau lanjutkan animasi"><i data-lucide="pause"></i></button>
+          <span class="orbit-hint">Seret untuk memutar · Gulir untuk zoom</span>
+          <div class="control-cluster">
+            <button
+              id="zoom-out"
+              class="icon-button"
+              type="button"
+              aria-label="Perkecil tampilan"
+              title="Perkecil tampilan"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <button
+              id="zoom-in"
+              class="icon-button"
+              type="button"
+              aria-label="Perbesar tampilan"
+              title="Perbesar tampilan"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            </button>
+            <button
+              id="reset-view"
+              class="icon-button"
+              type="button"
+              aria-label="Atur ulang sudut pandang"
+              title="Atur ulang sudut pandang (Home)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <button
+              id="pause-view"
+              class="icon-button"
+              type="button"
+              aria-label="Jeda animasi"
+              aria-pressed="false"
+              title="Jeda atau lanjutkan animasi"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
+            </button>
+          </div>
         </div>
       </div>
 
+      <!-- Bottom Architectural Specimen Dock -->
       <nav class="specimen-nav" aria-label="Pilih objek arsip">
-        <button class="specimen-tab" type="button" data-object="0" aria-current="true">
-          <span class="specimen-index">01</span><span>Tidal Array</span>
-        </button>
-        <button class="specimen-tab" type="button" data-object="1">
-          <span class="specimen-index">02</span><span>Lumen Sailer</span>
-        </button>
-        <button class="specimen-tab" type="button" data-object="2">
-          <span class="specimen-index">03</span><span>Event Horizon</span>
-        </button>
+        <div class="specimen-tabs">
+          <span class="specimen-rail" aria-hidden="true"></span>
+          <button class="specimen-tab" type="button" data-object="0" aria-current="true">
+            <span class="specimen-index">01</span>
+            <span class="specimen-meta">
+              <span class="specimen-label">Tidal Array</span>
+              <span class="specimen-sub">Instrumen navigasi</span>
+            </span>
+          </button>
+          <button class="specimen-tab" type="button" data-object="1">
+            <span class="specimen-index">02</span>
+            <span class="specimen-meta">
+              <span class="specimen-label">Lumen Sailer</span>
+              <span class="specimen-sub">Kapal ekspedisi</span>
+            </span>
+          </button>
+          <button class="specimen-tab" type="button" data-object="2">
+            <span class="specimen-index">03</span>
+            <span class="specimen-meta">
+              <span class="specimen-label">Event Horizon</span>
+              <span class="specimen-sub">Fenomena kosmik</span>
+            </span>
+          </button>
+        </div>
+
         <div class="specimen-arrows">
-          <button class="icon-button" type="button" id="previous-specimen" aria-label="Objek sebelumnya"><i data-lucide="arrow-left"></i></button>
-          <button class="icon-button" type="button" id="next-specimen" aria-label="Objek berikutnya"><i data-lucide="arrow-right"></i></button>
+          <button
+            class="icon-button"
+            type="button"
+            id="previous-specimen"
+            aria-label="Objek sebelumnya"
+            title="Objek sebelumnya"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          </button>
+          <button
+            class="icon-button"
+            type="button"
+            id="next-specimen"
+            aria-label="Objek berikutnya"
+            title="Objek berikutnya"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
         </div>
       </nav>
-      <noscript><p class="noscript">Aktifkan JavaScript untuk memilih dan memutar objek arsip.</p></noscript>
+
+      <noscript>
+        <p class="noscript">Aktifkan JavaScript untuk memilih dan memutar objek arsip 3D.</p>
+      </noscript>
     </main>
 
+    <!-- Side Monograph Sheet -->
     <dialog class="artifact-dialog" id="artifact-dialog" aria-labelledby="dialog-title">
       <article class="artifact-card">
         <header class="artifact-header">
-          <p class="eyebrow" id="dialog-category"></p>
-          <form method="dialog"><button class="icon-button close-dialog" type="submit" aria-label="Tutup detail" autofocus><i data-lucide="x"></i></button></form>
+          <div class="artifact-id">
+            <span class="artifact-code" id="dialog-code">01 / 03</span>
+            <span class="artifact-category" id="dialog-category">Instrumen navigasi</span>
+          </div>
+          <form method="dialog">
+            <button
+              class="icon-button close-dialog"
+              type="submit"
+              aria-label="Tutup monograf"
+              autofocus
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </form>
         </header>
-        <h2 id="dialog-title"></h2>
+
+        <h2 id="dialog-title">Tidal Array</h2>
         <p class="artifact-story" id="dialog-story"></p>
-        <dl id="dialog-notes"></dl>
-        <a class="artifact-voyage" href="/voyage.html">Buka pelayaran <i data-lucide="arrow-up-right"></i></a>
+
+        <dl class="artifact-specs" id="dialog-notes"></dl>
+
+        <footer class="artifact-footer">
+          <a class="artifact-voyage" href="/voyage.html">
+            <span>Buka mode pelayaran</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+          </a>
+        </footer>
       </article>
     </dialog>
+
     <script type="module" src="/src/archive/main.js"></script>
   </body>
 </html>

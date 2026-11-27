@@ -2,7 +2,11 @@
 
 ## Arsip ekspedisi
 
-Model 3D menjadi fokus di tengah panggung gelap. Judul serif dan aksen tembaga pada antarmuka mengikuti warna material Tidal Array. Judul, objek, dan pilihan objek disusun vertikal di ponsel. Panel detail bisa dibuka dari tombol yang dapat diakses dengan keyboard.
+Model 3D menjadi fokus di panggung gelap kosmik dengan pencahayaan studio observatorium khusus dan harmoni aksen per objek (tembaga untuk Tidal Array, biru langit bulan untuk Lumen Sailer, emas akresi untuk Event Horizon). Tidak ada placeholder CSS statis sebelum WebGL; canvas 3D diinisialisasi langsung dengan fallback aman untuk post-processing. Tipografi self-hosted memadukan Bodoni Moda untuk judul display, Manrope untuk antarmuka dan teks baca, serta JetBrains Mono khusus untuk indeks katalog dan telemetri sudut orbit real-time (`AZ / EL / ZM`). Mode ikhtisar menampilkan komposisi asimetris dan beralih mulus ke mode inspeksi layar penuh saat masuk arsip atau menyeret objek 3D, dilengkapi lembaran monograf sisi kanan (bottom sheet di ponsel) yang dapat diakses penuh lewat keyboard.
+
+## Halaman Maerith (`maerith.html`)
+
+Halaman mandiri dengan identitas Crumbling Farum Azula: basal gelap (`#090708`), emas kuno (`#cfa65d`) untuk Fase I, dan merah Destined Death (`#e03c49`) untuk Fase II. Tipografi self-hosted memadukan Cinzel, Manrope, dan JetBrains Mono. Panggung WebGL merender model 3D Maerith asli (`tpose.fbx`, `textures.glb`, `sword.glb`) di atas dais batu melingkar dengan orbit 360°, zoom, pergantian Fase I/II, pilihan pose animasi skeletal, lembaran arsip serangan, serta tautan langsung ke arena duel dan eksplorasi di `elden.html`.
 
 ## Mode pelayaran
 

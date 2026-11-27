@@ -41,6 +41,21 @@ export function createHUD() {
   let dmgAccum = 0;
   let dmgHideTimer = 0;
 
+  // Cache previous DOM values to avoid unnecessary per-frame style/layout invalidation
+  let lastHp = -1;
+  let lastCap = -1;
+  let lastFp = -1;
+  let lastStam = -1;
+  let lastFlasks = -1;
+  let lastBurn = null;
+  let lastBossName = "";
+  let lastBossHp = -1;
+  let lastBossPoise = -1;
+  let lastReticleVis = null;
+  let lastReticleX = -1;
+  let lastReticleY = -1;
+  let lastCutscene = null;
+
   const EXPLORE_HINTS = `
     <div><kbd>WASD</kbd> Walk &nbsp; <kbd>DRAG</kbd> Look Around &nbsp; <kbd>SCROLL</kbd> Zoom</div>
     <div><kbd>E</kbd> Interact (Grace / Mist) &nbsp; <kbd>SPACE</kbd> Dodge Roll</div>
@@ -136,33 +151,60 @@ export function createHUD() {
     update(state, dt, reticlePos) {
       const { player, boss } = state;
 
-      const hpPct = (player.hp / player.maxHp) * 100;
-      const capPct = ((player.maxHp - player.effectiveMaxHp) / player.maxHp) * 100;
-      const fpPct = (player.fp / player.maxFp) * 100;
-      const stamPct = (player.stamina / player.maxStamina) * 100;
+      const hpPct = Math.round((player.hp / player.maxHp) * 1000) / 10;
+      const capPct = Math.round(((player.maxHp - player.effectiveMaxHp) / player.maxHp) * 1000) / 10;
+      const fpPct = Math.round((player.fp / player.maxFp) * 1000) / 10;
+      const stamPct = Math.round((player.stamina / player.maxStamina) * 1000) / 10;
 
-      el.hpFill.style.width = `${hpPct}%`;
-      el.hpDelay.style.width = `${hpPct}%`;
-      el.hpBurnCap.style.width = `${capPct}%`;
-      el.fpFill.style.width = `${fpPct}%`;
-      el.stamFill.style.width = `${stamPct}%`;
-      el.stamDelay.style.width = `${stamPct}%`;
-      el.flaskCount.textContent = `${player.flasks}`;
+      if (hpPct !== lastHp) {
+        lastHp = hpPct;
+        const w = `${hpPct}%`;
+        el.hpFill.style.width = w;
+        el.hpDelay.style.width = w;
+      }
+      if (capPct !== lastCap) {
+        lastCap = capPct;
+        el.hpBurnCap.style.width = `${capPct}%`;
+      }
+      if (fpPct !== lastFp) {
+        lastFp = fpPct;
+        el.fpFill.style.width = `${fpPct}%`;
+      }
+      if (stamPct !== lastStam) {
+        lastStam = stamPct;
+        const w = `${stamPct}%`;
+        el.stamFill.style.width = w;
+        el.stamDelay.style.width = w;
+      }
+      if (player.flasks !== lastFlasks) {
+        lastFlasks = player.flasks;
+        el.flaskCount.textContent = `${player.flasks}`;
+      }
 
-      if (player.deathBurnTimer > 0) {
-        el.statusEffects.textContent = "DESTINED DEATH";
-        el.deathBurnOverlay.classList.add("active");
-      } else {
-        el.statusEffects.textContent = "";
-        el.deathBurnOverlay.classList.remove("active");
+      const burning = player.deathBurnTimer > 0;
+      if (burning !== lastBurn) {
+        lastBurn = burning;
+        el.statusEffects.textContent = burning ? "DESTINED DEATH" : "";
+        el.deathBurnOverlay.classList.toggle("active", burning);
       }
 
       if (!state.exploreMode) {
-        el.bossName.textContent = boss.name;
-        const bossHpPct = (boss.hp / boss.maxHp) * 100;
-        el.bossHpFill.style.width = `${bossHpPct}%`;
-        el.bossHpDelay.style.width = `${bossHpPct}%`;
-        el.bossPoiseFill.style.width = `${(boss.poise / boss.maxPoise) * 100}%`;
+        if (boss.name !== lastBossName) {
+          lastBossName = boss.name;
+          el.bossName.textContent = boss.name;
+        }
+        const bossHpPct = Math.round((boss.hp / boss.maxHp) * 1000) / 10;
+        if (bossHpPct !== lastBossHp) {
+          lastBossHp = bossHpPct;
+          const w = `${bossHpPct}%`;
+          el.bossHpFill.style.width = w;
+          el.bossHpDelay.style.width = w;
+        }
+        const poisePct = Math.round((boss.poise / boss.maxPoise) * 1000) / 10;
+        if (poisePct !== lastBossPoise) {
+          lastBossPoise = poisePct;
+          el.bossPoiseFill.style.width = `${poisePct}%`;
+        }
       }
 
       if (dialogueTimer > 0) {
@@ -187,21 +229,31 @@ export function createHUD() {
         }
       }
 
-      if (!state.exploreMode && reticlePos && reticlePos.visible && !state.inCutscene) {
-        el.lockReticle.classList.remove("hidden");
-        el.lockReticle.style.left = `${reticlePos.x}px`;
-        el.lockReticle.style.top = `${reticlePos.y}px`;
-      } else {
-        el.lockReticle.classList.add("hidden");
+      const showReticle = Boolean(!state.exploreMode && reticlePos && reticlePos.visible && !state.inCutscene);
+      if (showReticle !== lastReticleVis) {
+        lastReticleVis = showReticle;
+        el.lockReticle.classList.toggle("hidden", !showReticle);
+      }
+      if (showReticle) {
+        const rx = Math.round(reticlePos.x);
+        const ry = Math.round(reticlePos.y);
+        if (rx !== lastReticleX || ry !== lastReticleY) {
+          lastReticleX = rx;
+          lastReticleY = ry;
+          el.lockReticle.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+        }
       }
 
       const inCutscene = Boolean(state.inCutscene);
-      el.letterboxTop.classList.toggle("active", inCutscene);
-      el.letterboxBottom.classList.toggle("active", inCutscene);
-      el.playerHud.classList.toggle("cutscene-hidden", inCutscene);
-      el.quickSlots.classList.toggle("cutscene-hidden", inCutscene);
-      el.controlsHint.classList.toggle("cutscene-hidden", inCutscene);
-      el.bossHud.classList.toggle("cutscene-hidden", inCutscene);
+      if (inCutscene !== lastCutscene) {
+        lastCutscene = inCutscene;
+        el.letterboxTop.classList.toggle("active", inCutscene);
+        el.letterboxBottom.classList.toggle("active", inCutscene);
+        el.playerHud.classList.toggle("cutscene-hidden", inCutscene);
+        el.quickSlots.classList.toggle("cutscene-hidden", inCutscene);
+        el.controlsHint.classList.toggle("cutscene-hidden", inCutscene);
+        el.bossHud.classList.toggle("cutscene-hidden", inCutscene);
+      }
     },
   };
 }
